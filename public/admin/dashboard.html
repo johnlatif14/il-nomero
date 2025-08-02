@@ -114,6 +114,35 @@
       background-color: #0a2640;
       transform: translateY(-2px);
     }
+
+    /* أنماط قسم الدرجات */
+    .grade-excellent {
+      background-color: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .grade-good {
+      background-color: rgba(234, 179, 8, 0.1);
+      color: #ca8a04;
+    }
+
+    .grade-average {
+      background-color: rgba(249, 115, 22, 0.1);
+      color: #ea580c;
+    }
+
+    .grade-poor {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
     
     @media (max-width: 768px) {
       .sidebar {
@@ -177,6 +206,12 @@
             <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="results">
               <i class="fas fa-check-circle text-lg text-gray-300"></i>
               <span class="sidebar-text mr-4 text-gray-200">النتائج المعتمدة</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="grades">
+              <i class="fas fa-star text-lg text-gray-300"></i>
+              <span class="sidebar-text mr-4 text-gray-200">الدرجات</span>
             </a>
           </li>
           <li class="border-t border-gray-700 pt-2 mt-2">
@@ -471,6 +506,57 @@
             </div>
           </div>
         </div>
+
+        <!-- قسم الدرجات -->
+        <div id="gradesTab" class="tab-content hidden">
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">سجل الدرجات</h2>
+              <div class="flex space-x-2">
+                <button id="addGradeBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
+                  <i class="fas fa-plus mr-1"></i> إضافة درجة
+                </button>
+                <button id="exportGradesBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                  <i class="fas fa-file-export mr-1"></i> تصدير البيانات
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                <thead class="bg-gray-50 dark:bg-gray-600">
+                  <tr>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">اسم الشخص</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الدرجة</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">رقم الهاتف</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">البريد الإلكتروني</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="gradesTable" class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
+                  <!-- سيتم ملؤه بالبيانات -->
+                  <tr>
+                    <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد بيانات متاحة</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                عرض <span id="gradesCount">0</span> من <span id="totalGradesCount">0</span> نتيجة
+              </div>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50" disabled>
+                  السابق
+                </button>
+                <button class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
+                  التالي
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -606,6 +692,49 @@
     </div>
   </div>
 
+  <!-- Modal لإضافة/تعديل الدرجات -->
+  <div id="gradeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white" id="gradeModalTitle">إضافة درجة جديدة</h3>
+        <button id="closeGradeModal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="p-4">
+        <form id="gradeForm">
+          <input type="hidden" id="gradeId">
+          <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم الشخص *</label>
+            <input type="text" id="studentName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-700 dark:text-gray-300 mb-2">الدرجة *</label>
+              <input type="number" id="grade" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+              <label class="block text-gray-700 dark:text-gray-300 mb-2">من *</label>
+              <input type="number" id="total" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم الهاتف *</label>
+            <input type="tel" id="studentPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني</label>
+            <input type="email" id="studentEmail" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button type="button" id="cancelGrade" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">إلغاء</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     // النص البرمجي الأصلي يبقى كما هو مع بعض التحسينات الطفيفة
     // يمكنك استخدام نفس النص البرمجي السابق مع إضافة بعض التحسينات مثل:
@@ -620,8 +749,138 @@
       const fileName = e.target.files[0] ? e.target.files[0].name : 'لم يتم اختيار ملف';
       document.getElementById('editFileName').textContent = fileName;
     });
-    
-    // تحسينات أخرى حسب الحاجة
+
+    // إدارة قسم الدرجات
+    document.addEventListener('DOMContentLoaded', function() {
+      // إضافة حدث للنقر على زر إضافة درجة
+      document.getElementById('addGradeBtn').addEventListener('click', function() {
+        document.getElementById('gradeModalTitle').textContent = 'إضافة درجة جديدة';
+        document.getElementById('gradeForm').reset();
+        document.getElementById('gradeId').value = '';
+        document.getElementById('gradeModal').classList.remove('hidden');
+      });
+
+      // إغلاق مودال الدرجات
+      document.getElementById('closeGradeModal').addEventListener('click', function() {
+        document.getElementById('gradeModal').classList.add('hidden');
+      });
+
+      document.getElementById('cancelGrade').addEventListener('click', function() {
+        document.getElementById('gradeModal').classList.add('hidden');
+      });
+
+      // حفظ بيانات الدرجة
+      document.getElementById('gradeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // هنا يمكنك إضافة كود لحفظ البيانات في قاعدة البيانات
+        const gradeData = {
+          id: document.getElementById('gradeId').value || Date.now().toString(),
+          name: document.getElementById('studentName').value,
+          grade: document.getElementById('grade').value,
+          total: document.getElementById('total').value,
+          phone: document.getElementById('studentPhone').value,
+          email: document.getElementById('studentEmail').value,
+          date: new Date().toLocaleDateString('ar-EG')
+        };
+        
+        // عرض رسالة نجاح
+        alert('تم حفظ بيانات الدرجة بنجاح');
+        document.getElementById('gradeModal').classList.add('hidden');
+        
+        // هنا يمكنك إضافة الكود لتحديث الجدول
+        updateGradesTable([gradeData]); // هذا مثال فقط، في التطبيق الفعلي سيتم جلب البيانات من قاعدة البيانات
+      });
+
+      // تصدير بيانات الدرجات
+      document.getElementById('exportGradesBtn').addEventListener('click', function() {
+        // هنا يمكنك إضافة كود لتصدير البيانات كملف Excel أو CSV
+        alert('سيتم تصدير بيانات الدرجات كملف Excel');
+      });
+    });
+
+    // دالة لتحديث جدول الدرجات
+    function updateGradesTable(grades) {
+      const gradesTable = document.getElementById('gradesTable');
+      gradesTable.innerHTML = '';
+
+      if (grades.length === 0) {
+        gradesTable.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد بيانات متاحة</td>
+          </tr>
+        `;
+        return;
+      }
+
+      grades.forEach((grade, index) => {
+        const percentage = (grade.grade / grade.total) * 100;
+        let gradeClass = 'grade-poor';
+        
+        if (percentage >= 85) gradeClass = 'grade-excellent';
+        else if (percentage >= 70) gradeClass = 'grade-good';
+        else if (percentage >= 50) gradeClass = 'grade-average';
+        
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600';
+        row.innerHTML = `
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${index + 1}</td>
+          <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${grade.name}</td>
+          <td class="px-4 py-4 text-sm">
+            <span class="grade-badge ${gradeClass}">${grade.grade}/${grade.total} (${percentage.toFixed(1)}%)</span>
+          </td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.phone}</td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.email || 'غير متوفر'}</td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.date}</td>
+          <td class="px-4 py-4 text-sm text-right space-x-2">
+            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 edit-grade" data-id="${grade.id}">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 delete-grade" data-id="${grade.id}">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+        `;
+        gradesTable.appendChild(row);
+      });
+
+      document.getElementById('gradesCount').textContent = grades.length;
+      document.getElementById('totalGradesCount').textContent = grades.length;
+    }
+
+    // مثال على بيانات الدرجات (في التطبيق الفعلي سيتم جلبها من قاعدة البيانات)
+    const sampleGrades = [
+      {
+        id: '1',
+        name: 'أحمد محمد',
+        grade: 85,
+        total: 100,
+        phone: '0123456789',
+        email: 'ahmed@example.com',
+        date: '2023-05-15'
+      },
+      {
+        id: '2',
+        name: 'محمود علي',
+        grade: 70,
+        total: 100,
+        phone: '0111222333',
+        email: '',
+        date: '2023-05-16'
+      },
+      {
+        id: '3',
+        name: 'سارة خالد',
+        grade: 45,
+        total: 100,
+        phone: '0100444555',
+        email: 'sara@example.com',
+        date: '2023-05-17'
+      }
+    ];
+
+    // استدعاء الدالة لعرض بيانات العينة
+    updateGradesTable(sampleGrades);
   </script>
 </body>
 </html>

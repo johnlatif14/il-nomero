@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الاختبارات الإلكترونية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --danger-color: #f72585;
+            --success-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* صفحة التسجيل */
+        #registration-page {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 50px;
+        }
+        
+        #registration-page h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        /* صفحة الاختبار */
+        #quiz-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+        
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        #quiz-title {
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+        
+        #user-info {
+            background-color: var(--light-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .question {
+            background-color: #f8f9fa;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .question h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .options {
+            margin-right: 15px;
+        }
+        
+        .option {
+            display: block;
+            margin-bottom: 12px;
+            cursor: pointer;
+            position: relative;
+            padding-right: 35px;
+        }
+        
+        .option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 22px;
+            width: 22px;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .option:hover .checkmark {
+            background-color: #f1f1f1;
+        }
+        
+        .option input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .option input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .option .checkmark:after {
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        /* صفحة النتائج */
+        #results-page {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+            text-align: center;
+        }
+        
+        #results-page h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        #score-container {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        #score {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        #total-score {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .result-feedback {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .answers-feedback {
+            text-align: right;
+            margin-top: 30px;
+        }
+        
+        .answer-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        
+        .correct-answer {
+            border-right: 4px solid var(--success-color);
+        }
+        
+        .wrong-answer {
+            border-right: 4px solid var(--danger-color);
+        }
+        
+        .correct-text {
+            color: var(--success-color);
+            font-weight: 700;
+        }
+        
+        .wrong-text {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+        
+        /* صفحة الحظر */
+        #blocked-page {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+            text-align: center;
+        }
+        
+        #blocked-page h1 {
+            color: var(--danger-color);
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .payment-details {
+            background-color: #fff5f7;
+            border: 1px solid var(--danger-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .payment-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin: 10px 0;
+        }
+        
+        /* الأزرار */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-large {
+            padding: 15px 30px;
+            font-size: 18px;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        /* التايمر */
+        #leave-timer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(247, 37, 133, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+        
+        /* الرسائل */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-info {
+            background-color: #e7f5ff;
+            color: #1864ab;
+            border-left: 4px solid #1864ab;
+        }
+        .kokha-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #f72585;
+        color: white;
+        padding: 20px 40px;
+        border-radius: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 2000;
+        display: none;
+        animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -60%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    </style>
+</head>
+<body>
+    <!-- مؤقت الخروج -->
+    <div id="leave-timer">لقد غادرت الصفحة لمدة: <span id="timer-seconds">0</span> ثانية</div>
+    
+    <!-- صفحة التسجيل -->
+    <div class="container" id="registration-page">
+        <h1>تسجيل الدخول للاختبار</h1>
+        
+        <div class="alert alert-info">
+            <p>برجاء ملء جميع البيانات التالية للبدء في الاختبار</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">الاسم بالكامل</label>
+            <input type="text" id="name" class="form-control" placeholder="أدخل اسمك بالكامل" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">رقم الهاتف</label>
+            <input type="tel" id="phone" class="form-control" placeholder="أدخل رقم هاتفك" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">البريد الإلكتروني</label>
+            <input type="email" id="email" class="form-control" placeholder="أدخل بريدك الإلكتروني" required>
+        </div>
+        
+        <button id="start-quiz" class="btn btn-primary btn-large btn-block">بدء الاختبار</button>
+    </div>
+    
+    <!-- صفحة الاختبار -->
+    <div class="container" id="quiz-container">
+        <div id="quiz-header">
+            <h1 id="quiz-title">اختبار المعرفة - 5 أسئلة (25 نقطة)</h1>
+            <div id="user-info"></div>
+        </div>
+        
+        <div class="question">
+            <h3>السؤال 1: ما هي عاصمة مصر؟ (5 نقاط)</h3>
+            <div class="options">
+                <label class="option">أ) الإسكندرية
+                    <input type="radio" name="q1" value="a">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ب) القاهرة
+                    <input type="radio" name="q1" value="b">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ج) أسوان
+                    <input type="radio" name="q1" value="c">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">د) بورسعيد
+                    <input type="radio" name="q1" value="d">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <h3>السؤال 2: كم عدد أيام السنة الكبيسة؟ (5 نقاط)</h3>
+            <div class="options">
+                <label class="option">أ) 365
+                    <input type="radio" name="q2" value="a">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ب) 366
+                    <input type="radio" name="q2" value="b">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ج) 364
+                    <input type="radio" name="q2" value="c">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">د) 367
+                    <input type="radio" name="q2" value="d">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <h3>السؤال 3: ما هو العنصر الكيميائي الذي رمزه O؟ (5 نقاط)</h3>
+            <div class="options">
+                <label class="option">أ) الذهب
+                    <input type="radio" name="q3" value="a">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ب) الأكسجين
+                    <input type="radio" name="q3" value="b">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ج) الأوزون
+                    <input type="radio" name="q3" value="c">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">د) الحديد
+                    <input type="radio" name="q3" value="d">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <h3>السؤال 4: من هو مؤلف كتاب "القدس ليست أورشليم"؟ (5 نقاط)</h3>
+            <div class="options">
+                <label class="option">أ) نجيب محفوظ
+                    <input type="radio" name="q4" value="a">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ب) محمد حسنين هيكل
+                    <input type="radio" name="q4" value="b">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ج) يوسف زيدان
+                    <input type="radio" name="q4" value="c">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">د) طه حسين
+                    <input type="radio" name="q4" value="d">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <h3>السؤال 5: ما هي العملة الرسمية لليابان؟ (5 نقاط)</h3>
+            <div class="options">
+                <label class="option">أ) الدولار
+                    <input type="radio" name="q5" value="a">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ب) اليورو
+                    <input type="radio" name="q5" value="b">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">ج) الين
+                    <input type="radio" name="q5" value="c">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="option">د) البيزو
+                    <input type="radio" name="q5" value="d">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+        
+        <button onclick="submitQuiz()" class="btn btn-primary">إرسال الإجابات</button>
+    </div>
+    
+    <!-- صفحة النتائج -->
+    <div class="container" id="results-page">
+        <h1>نتيجة الاختبار</h1>
+        
+        <div id="score-container">
+            <div id="score"></div>
+            <div id="total-score">من 25 نقطة</div>
+        </div>
+        
+        <div class="result-feedback" id="result-feedback"></div>
+        
+        <div class="answers-feedback" id="answers-feedback"></div>
+        
+        <button onclick="showKokhaMessage()" class="btn btn-primary">العودة إلى الاختبار</button>
+    </div>
+    
+    <!-- صفحة الحظر -->
+    <div class="container" id="blocked-page">
+        <h1>انتباه! محاولة خروج غير مسموح بها</h1>
+        <p>لقد غادرت صفحة الاختبار لمدة <span id="blocked-seconds">0</span> ثانية</p>
+        
+        <div class="payment-details">
+            <p>للاستمرار في الاختبار، يرجى إجراء عملية الدفع إلى:</p>
+            <div class="payment-number">01274445091</div>
+            <p>سيتم تفعيل الاختبار خلال دقائق بعد التحقق من الدفع</p>
+        </div>
+        
+        <button onclick="checkPayment()" class="btn btn-primary">لقد قمت بالدفع</button>
+    </div>
+    <div id="kokhaMessage" class="kokha-message">كخه عيب يبابا!</div>
+
+    <script>
+        // الإجابات الصحيحة
+        const correctAnswers = {
+            q1: "b", // القاهرة
+            q2: "b", // 366
+            q3: "b", // الأكسجين
+            q4: "c", // يوسف زيدان
+            q5: "c"  // الين
+        };
+
+        // متغيرات التتبع
+        let quizSubmitted = false;
+        let userData = {};
+        let leaveTime = 0;
+        let leaveTimerInterval;
+        let blockedTimerInterval;
+
+        // عناصر DOM
+        const registrationPage = document.getElementById('registration-page');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsPage = document.getElementById('results-page');
+        const blockedPage = document.getElementById('blocked-page');
+        const userInfoElement = document.getElementById('user-info');
+        const leaveTimerElement = document.getElementById('leave-timer');
+        const timerSecondsElement = document.getElementById('timer-seconds');
+        const blockedSecondsElement = document.getElementById('blocked-seconds');
+
+        // بدء الاختبار
+        document.getElementById('start-quiz').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (name && phone && email) {
+                userData = { name, phone, email };
+                userInfoElement.textContent = `${name} | ${phone}`;
+                
+                registrationPage.style.display = 'none';
+                quizContainer.style.display = 'block';
+                
+                // تفعيل نظام مراقبة الخروج
+                setupExitMonitoring();
+            } else {
+                alert('برجاء ملء جميع البيانات المطلوبة');
+            }
+        });
+
+        // مراقبة الخروج من الصفحة
+        function setupExitMonitoring() {
+            window.onbeforeunload = function(e) {
+                if (!quizSubmitted) {
+                    e.preventDefault();
+                    return "هل أنت متأكد أنك تريد المغادرة؟ سيتم تحويلك إلى صفحة الدفع.";
+                }
+            };
+
+            window.onblur = function() {
+                if (!quizSubmitted) {
+                    leaveTime = 0;
+                    leaveTimerElement.style.display = 'block';
+                    updateLeaveTimer();
+                    
+                    leaveTimerInterval = setInterval(function() {
+                        leaveTime++;
+                        updateLeaveTimer();
+                        
+                        if (leaveTime >= 3) { // بعد 3 ثواني
+                            clearInterval(leaveTimerInterval);
+                            leaveTimerElement.style.display = 'none';
+                            showBlockedPage();
+                        }
+                    }, 1000);
+                }
+            };
+
+            window.onfocus = function() {
+                if (!quizSubmitted && leaveTimerInterval) {
+                    clearInterval(leaveTimerInterval);
+                    leaveTimerElement.style.display = 'none';
+                }
+            };
+        }
+
+        function updateLeaveTimer() {
+            timerSecondsElement.textContent = leaveTime;
+        }
+
+        function showBlockedPage() {
+            quizContainer.style.display = 'none';
+            blockedPage.style.display = 'block';
+            document.title = "ممنوع الدخول - برجاء الدفع";
+            
+            // بدء تايمر الصفحة المحظورة
+            let blockedTime = leaveTime;
+            blockedSecondsElement.textContent = blockedTime;
+            
+            blockedTimerInterval = setInterval(function() {
+                blockedTime++;
+                blockedSecondsElement.textContent = blockedTime;
+            }, 1000);
+        }
+
+        // تصحيح الإجابات
+        function checkAnswers() {
+            let score = 0;
+            let feedback = "";
+            
+            // حساب النقاط وتجهيز التغذية الراجعة
+            for (let i = 1; i <= 5; i++) {
+                const questionName = "q" + i;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                const correctAnswerText = getCorrectAnswerText(questionName);
+                
+                if (selectedOption) {
+                    if (selectedOption.value === correctAnswers[questionName]) {
+                        score += 5;
+                        feedback += `
+                            <div class="answer-item correct-answer">
+                                <p><strong>السؤال ${i}:</strong> إجابتك صحيحة</p>
+                                <p>${correctAnswerText}</p>
+                                <p class="correct-text">+5 نقاط</p>
+                            </div>
+                        `;
+                    } else {
+                        feedback += `
+                            <div class="answer-item wrong-answer">
+                                <p><strong>السؤال ${i}:</strong> إجابتك خاطئة</p>
+                                <p>إجابتك: ${getSelectedAnswerText(questionName)}</p>
+                                <p>الإجابة الصحيحة: ${correctAnswerText}</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    feedback += `
+                        <div class="answer-item wrong-answer">
+                            <p><strong>السؤال ${i}:</strong> لم تقم بالإجابة</p>
+                            <p>الإجابة الصحيحة: ${correctAnswerText}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // عرض النتائج
+            quizContainer.style.display = 'none';
+            resultsPage.style.display = 'block';
+            
+            document.getElementById('score').textContent = score;
+            
+            // إضافة تعليق على النتيجة
+            const percentage = (score / 25) * 100;
+            let resultComment = "";
+            
+            if (percentage >= 80) {
+                resultComment = "ممتاز! لديك معرفة رائعة.";
+            } else if (percentage >= 60) {
+                resultComment = "جيد جداً! لكن هناك بعض النقاط تحتاج إلى تحسين.";
+            } else if (percentage >= 40) {
+                resultComment = "مقبول. ننصحك بمراجعة المعلومات مرة أخرى.";
+            } else {
+                resultComment = "ضعيف. ننصحك بالدراسة جيداً قبل إعادة الاختبار.";
+            }
+            
+            document.getElementById('result-feedback').textContent = resultComment;
+            document.getElementById('answers-feedback').innerHTML = feedback;
+        }
+
+        function getCorrectAnswerText(questionName) {
+            const questions = {
+                q1: "ب) القاهرة",
+                q2: "ب) 366",
+                q3: "ب) الأكسجين",
+                q4: "ج) يوسف زيدان",
+                q5: "ج) الين"
+            };
+            return questions[questionName];
+        }
+
+        function getSelectedAnswerText(questionName) {
+            const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+            if (!selectedOption) return "لم يتم الإجابة";
+            
+            const optionText = selectedOption.parentElement.textContent.trim();
+            return optionText.substring(0, optionText.indexOf('\n')).trim();
+        }
+
+        function backToQuiz() {
+            resultsPage.style.display = 'none';
+            quizContainer.style.display = 'block';
+        }
+
+        function submitQuiz() {
+            quizSubmitted = true;
+            checkAnswers();
+            
+            // إزالة مراقبة الخروج
+            window.onbeforeunload = null;
+            window.onblur = null;
+            
+            // إرسال البيانات إلى السيرفر (يمكنك إضافة هذا الجزء لاحقاً)
+            const formData = {
+                ...userData,
+                answers: getSelectedAnswers(),
+                score: calculateScore(),
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log("بيانات الاختبار المرسلة:", formData);
+            alert("تم إرسال إجاباتك بنجاح! سيتم مراجعة النتائج.");
+        }
+
+        function getSelectedAnswers() {
+            const answers = {};
+            for (let i = 1; i <= 5; i++) {
+                const questionName = "q" + i;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                answers[questionName] = selectedOption ? selectedOption.value : null;
+            }
+            return answers;
+        }
+
+        function calculateScore() {
+            let score = 0;
+            for (let i = 1; i <= 5; i++) {
+                const questionName = "q" + i;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[questionName]) {
+                    score += 5;
+                }
+            }
+            return score;
+        }
+
+        function checkPayment() {
+            clearInterval(blockedTimerInterval);
+            
+            const paymentConfirmed = confirm("هل قمت بالفعل بالدفع إلى الرقم المحدد؟");
+            if (paymentConfirmed) {
+                alert("شكراً لك! جاري التحقق من الدفع، يمكنك متابعة الاختبار الآن.");
+                blockedPage.style.display = 'none';
+                quizContainer.style.display = 'block';
+                document.title = "اختبار المعرفة - 5 أسئلة";
+            }
+        }
+            function showKokhaMessage() {
+        const message = document.getElementById('kokhaMessage');
+        message.style.display = 'block';
+        
+        // إخفاء الرسالة بعد 3 ثواني
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3000);
+    }
+    
+    // يمكنك الاحتفاظ بوظيفة backToQuiz الأصلية إذا كنت تحتاجها
+    function backToQuiz() {
+        // الكود الأصلي هنا إن كنت تحتاجه
+    }
+    </script>
+</body>
+</html>
