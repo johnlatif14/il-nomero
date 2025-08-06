@@ -427,12 +427,7 @@
     </style>
 </head>
 <body>
-    <!-- صفحة الحظر (للدخول المباشر بدون صلاحيات الإدمن) -->
-    <div id="access-denied" style="display: none;">
-        <h1>الدخول مرفوض!</h1>
-        <p>عذراً، لا يمكنك الوصول إلى هذه الصفحة مباشرة. يجب عليك الدخول من خلال لوحة تحكم الإدمن.</p>
-        <a href="https://wa.me/+201274445091">الذهاب إلى الرقم 0127445091 للفتح</a>
-    </div>
+    <!-- Removed access denied block -->
 
     <!-- رسالة الامتحان مغلق -->
     <div class="container" id="quiz-closed-message">
@@ -642,18 +637,10 @@
 
         // التحقق من الصلاحيات عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // إذا لم يكن المستخدم مسجل دخول كإدمن، عرض رسالة الحظر
-            if (sessionStorage.getItem('adminAccess')) { // تم تغيير الشرط هنا
-                document.getElementById('access-denied').style.display = 'none';
-                checkQuizAvailability(); // التحقق من حالة الامتحان إذا كان إدمن
-            } else {
-                document.getElementById('access-denied').style.display = 'flex';
-                document.getElementById('registration-page').style.display = 'none';
-                document.getElementById('quiz-container').style.display = 'none';
-                document.getElementById('results-page').style.display = 'none';
-                document.getElementById('blocked-page').style.display = 'none';
-                document.getElementById('quiz-closed-message').style.display = 'none'; // تأكد من إخفائها
-            }
+            // إخفاء رسالة الحظر للجميع أولاً
+            document.getElementById('access-denied').style.display = 'none';
+            // التحقق من حالة الامتحان للجميع
+            checkQuizAvailability(); 
         });
 
         // التحقق من توفر الامتحان من الخادم
@@ -661,17 +648,21 @@
             try {
                 const response = await fetch('/api/quiz-status');
                 const data = await response.json();
+                
+                document.getElementById('registration-page').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'none';
+                document.getElementById('results-page').style.display = 'none';
+                document.getElementById('blocked-page').style.display = 'none';
+                
                 if (data.isOpen) {
                     document.getElementById('registration-page').style.display = 'block';
                     document.getElementById('quiz-closed-message').style.display = 'none';
                 } else {
-                    document.getElementById('registration-page').style.display = 'none';
                     document.getElementById('quiz-closed-message').style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error checking quiz availability:', error);
-                document.getElementById('registration-page').style.display = 'none';
-                document.getElementById('quiz-closed-message').style.display = 'block'; // عرض رسالة الإغلاق في حالة الخطأ
+                document.getElementById('quiz-closed-message').style.display = 'block';
                 document.getElementById('quiz-closed-message').innerHTML = `
                     <h1>خطأ في الاتصال</h1>
                     <p>حدث خطأ أثناء التحقق من توفر الامتحان. يرجى المحاولة لاحقًا.</p>
