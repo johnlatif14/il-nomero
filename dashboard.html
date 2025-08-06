@@ -3,159 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة التحكم - il-nomero</title>
+  <title>لوحة التحكم - Clan King个ESPORTSツ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              200: '#bae6fd',
-              300: '#7dd3fc',
-              400: '#38bdf8',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e',
-            },
-            clan: {
-              dark: '#1a1a2e',
-              primary: '#16213e',
-              secondary: '#0f3460',
-              accent: '#e94560',
-              light: '#f9f9f9'
-            }
-          },
-          fontFamily: {
-            'tajawal': ['Tajawal', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-    
-    body {
-      font-family: 'Tajawal', sans-serif;
-    }
-    
     .sidebar {
       transition: all 0.3s ease;
-      background: linear-gradient(to bottom, #16213e, #0f3460);
     }
-    
     .sidebar.collapsed {
       width: 80px;
     }
-    
     .sidebar.collapsed .sidebar-text {
       display: none;
     }
-    
-    .sidebar.collapsed:hover {
-      width: 260px;
-    }
-    
-    .sidebar.collapsed:hover .sidebar-text {
-      display: inline;
-    }
-    
     .main-content {
       transition: margin-right 0.3s ease;
     }
-    
-    .nav-item {
-      transition: all 0.2s ease;
-      border-right: 3px solid transparent;
-    }
-    
-    .nav-item:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-right-color: #e94560;
-    }
-    
-    .nav-item.active-tab {
-      background-color: rgba(233, 69, 96, 0.2);
-      border-right-color: #e94560;
-    }
-    
-    .stat-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-    
-    .btn-primary {
-      background-color: #e94560;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-      background-color: #d13354;
-      transform: translateY(-2px);
-    }
-    
-    .btn-secondary {
-      background-color: #0f3460;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #0a2640;
-      transform: translateY(-2px);
-    }
-
-    /* أنماط قسم الدرجات */
-    .grade-excellent {
-      background-color: rgba(34, 197, 94, 0.1);
-      color: #16a34a;
-    }
-
-    .grade-good {
-      background-color: rgba(234, 179, 8, 0.1);
-      color: #ca8a04;
-    }
-
-    .grade-average {
-      background-color: rgba(249, 115, 22, 0.1);
-      color: #ea580c;
-    }
-
-    .grade-poor {
-      background-color: rgba(239, 68, 68, 0.1);
-      color: #dc2626;
-    }
-
-    .grade-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.375rem;
-      font-weight: 600;
-      font-size: 0.875rem;
-    }
-    
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
         z-index: 40;
         height: 100vh;
       }
-      
       .sidebar.collapsed {
         width: 0;
         overflow: hidden;
       }
-      
       .main-content {
         margin-right: 0 !important;
       }
@@ -165,13 +38,13 @@
 <body class="bg-gray-100 dark:bg-gray-900">
   <div class="flex h-screen">
     <!-- الشريط الجانبي -->
-    <div id="sidebar" class="sidebar text-white w-64 flex-shrink-0">
+    <div id="sidebar" class="sidebar bg-gray-800 text-white w-64 flex-shrink-0">
       <div class="p-4 flex items-center justify-between border-b border-gray-700">
         <a href="dashboard.html" class="flex items-center">
-          <i class="fas fa-crown text-yellow-400 text-2xl"></i>
-          <span class="sidebar-text text-xl font-bold mr-3 text-white">il-nomero</span>
+          <i class="fas fa-crown text-yellow-400 text-xl"></i>
+          <span class="sidebar-text text-xl font-bold mr-2">Clan King个ESPORTSツ</span>
         </a>
-        <button id="toggleSidebar" class="text-gray-300 hover:text-white">
+        <button id="toggleSidebar" class="text-gray-400 hover:text-white">
           <i class="fas fa-bars"></i>
         </button>
       </div>
@@ -179,45 +52,39 @@
       <nav class="p-4">
         <ul class="space-y-2">
           <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded active-tab" data-tab="dashboard">
-              <i class="fas fa-tachometer-alt text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">لوحة التحكم</span>
+            <a href="#" class="flex items-center p-2 rounded hover:bg-gray-700 active-tab" data-tab="dashboard">
+              <i class="fas fa-tachometer-alt"></i>
+              <span class="sidebar-text mr-3">لوحة التحكم</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="bookings">
-              <i class="fas fa-users text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">طلبات الانضمام</span>
+            <a href="#" class="flex items-center p-2 rounded hover:bg-gray-700" data-tab="bookings">
+              <i class="fas fa-users"></i>
+              <span class="sidebar-text mr-3">طلبات الانضمام</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="messages">
-              <i class="fas fa-envelope text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">إرسال رسائل</span>
+            <a href="#" class="flex items-center p-2 rounded hover:bg-gray-700" data-tab="messages">
+              <i class="fas fa-envelope"></i>
+              <span class="sidebar-text mr-3">إرسال رسائل</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="inquiries">
-              <i class="fas fa-question-circle text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">الاستفسارات</span>
+            <a href="#" class="flex items-center p-2 rounded hover:bg-gray-700" data-tab="inquiries">
+              <i class="fas fa-question-circle"></i>
+              <span class="sidebar-text mr-3">الاستفسارات</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="results">
-              <i class="fas fa-check-circle text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">النتائج المعتمدة</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="grades">
-              <i class="fas fa-star text-lg text-gray-300"></i>
-              <span class="sidebar-text mr-4 text-gray-200">الدرجات</span>
+            <a href="#" class="flex items-center p-2 rounded hover:bg-gray-700" data-tab="results">
+              <i class="fas fa-check-circle"></i>
+              <span class="sidebar-text mr-3">النتائج المعتمدة</span>
             </a>
           </li>
           <li class="border-t border-gray-700 pt-2 mt-2">
-            <a href="login.html" class="nav-item flex items-center p-3 rounded hover:bg-red-900/30" id="logoutBtn">
-              <i class="fas fa-sign-out-alt text-lg text-red-400"></i>
-              <span class="sidebar-text mr-4 text-red-400">تسجيل الخروج</span>
+            <a href="/admin/logout" class="flex items-center p-2 rounded hover:bg-gray-700 text-red-400" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="sidebar-text mr-3">تسجيل الخروج</span>
             </a>
           </li>
         </ul>
@@ -225,21 +92,21 @@
     </div>
     
     <!-- المحتوى الرئيسي -->
-    <div class="main-content flex-1 overflow-auto bg-gray-50 dark:bg-gray-800">
+    <div class="main-content flex-1 overflow-auto">
       <!-- شريط العنوان -->
-      <header class="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center sticky top-0 z-30">
+      <header class="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
         <div class="flex items-center">
           <button id="mobileToggleSidebar" class="mr-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 md:hidden">
-            <i class="fas fa-bars text-gray-800 dark:text-white"></i>
+            <i class="fas fa-bars"></i>
           </button>
           <h1 class="text-xl font-bold text-gray-800 dark:text-white" id="pageTitle">لوحة التحكم</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <button id="toggleDarkMode" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white">
+          <button id="toggleDarkMode" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
             <i class="fas fa-moon dark:hidden"></i>
             <i class="fas fa-sun hidden dark:inline"></i>
           </button>
-          <div class="flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+          <div class="flex items-center">
             <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin" class="w-8 h-8 rounded-full">
             <span class="mr-2 text-gray-800 dark:text-white">المدير</span>
           </div>
@@ -251,7 +118,7 @@
         <!-- قسم لوحة التحكم -->
         <div id="dashboardTab" class="tab-content">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="stat-card bg-white dark:bg-gray-700 rounded-lg shadow p-6 border-t-4 border-indigo-500">
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-6">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-gray-500 dark:text-gray-400">طلبات الانضمام</p>
@@ -262,14 +129,11 @@
                 </div>
               </div>
               <div class="mt-4">
-                <a href="#" class="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center" data-tab="bookings">
-                  عرض الكل
-                  <i class="fas fa-arrow-left mr-1"></i>
-                </a>
+                <a href="#" class="text-indigo-600 dark:text-indigo-400 hover:underline" data-tab="bookings">عرض الكل</a>
               </div>
             </div>
             
-            <div class="stat-card bg-white dark:bg-gray-700 rounded-lg shadow p-6 border-t-4 border-green-500">
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-6">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-gray-500 dark:text-gray-400">الاستفسارات الجديدة</p>
@@ -280,14 +144,11 @@
                 </div>
               </div>
               <div class="mt-4">
-                <a href="#" class="text-green-600 dark:text-green-400 hover:underline flex items-center" data-tab="inquiries">
-                  عرض الكل
-                  <i class="fas fa-arrow-left mr-1"></i>
-                </a>
+                <a href="#" class="text-green-600 dark:text-green-400 hover:underline" data-tab="inquiries">عرض الكل</a>
               </div>
             </div>
             
-            <div class="stat-card bg-white dark:bg-gray-700 rounded-lg shadow p-6 border-t-4 border-blue-500">
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-6">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-gray-500 dark:text-gray-400">الطلبات المعتمدة</p>
@@ -298,19 +159,13 @@
                 </div>
               </div>
               <div class="mt-4">
-                <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline flex items-center" data-tab="results">
-                  عرض الكل
-                  <i class="fas fa-arrow-left mr-1"></i>
-                </a>
+                <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline" data-tab="results">عرض الكل</a>
               </div>
             </div>
           </div>
           
-          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
-              <h2 class="text-xl font-bold text-gray-800 dark:text-white">آخر الطلبات</h2>
-              <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline" data-tab="bookings">عرض الكل</a>
-            </div>
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">آخر الطلبات</h2>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                 <thead class="bg-gray-50 dark:bg-gray-600">
@@ -336,15 +191,12 @@
             <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
               <h2 class="text-xl font-bold text-gray-800 dark:text-white">طلبات الانضمام</h2>
               <div class="flex space-x-2">
-                <select id="bookingFilter" class="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 bg-white dark:bg-gray-800 text-sm">
+                <select id="bookingFilter" class="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 bg-white dark:bg-gray-800">
                   <option value="all">الكل</option>
                   <option value="pending">قيد الانتظار</option>
                   <option value="approved">مقبولة</option>
                   <option value="rejected">مرفوضة</option>
                 </select>
-                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
-                  <i class="fas fa-plus mr-1"></i> جديد
-                </button>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -365,81 +217,60 @@
                 </tbody>
               </table>
             </div>
-            <div class="p-4 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
-              <div class="text-sm text-gray-500 dark:text-gray-400">
-                عرض <span id="bookingsCount">0</span> من <span id="totalBookingsCount">0</span> طلب
-              </div>
-              <div class="flex space-x-2">
-                <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50" disabled>
-                  السابق
-                </button>
-                <button class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
-                  التالي
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         
         <!-- قسم إرسال الرسائل -->
         <div id="messagesTab" class="tab-content hidden">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-              <div class="p-4 border-b border-gray-200 dark:border-gray-600">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white">إرسال رسالة إلى اللاعب</h2>
-              </div>
-              <div class="p-4">
-                <form id="sendMessageForm">
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني للاعب</label>
-                    <input type="email" id="playerEmail" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                  </div>
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم المرسل (اختياري)</label>
-                    <input type="text" id="senderName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" placeholder="STORE King个ESPORTSツ">
-                  </div>
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">الرسالة</label>
-                    <textarea id="messageContent" rows="5" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
-                  </div>
-                  <button type="submit" class="btn-primary text-white py-2 px-4 rounded">
-                    <i class="fas fa-paper-plane mr-2"></i> إرسال الرسالة
-                  </button>
-                </form>
-                <div id="messageResponse" class="mt-4 hidden"></div>
-              </div>
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">إرسال رسالة إلى اللاعب</h2>
             </div>
+            <div class="p-4">
+              <form id="sendMessageForm">
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني للاعب</label>
+                  <input type="email" id="playerEmail" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" required>
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم المرسل (اختياري)</label>
+                  <input type="text" id="senderName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" placeholder="STORE King个ESPORTSツ">
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">الرسالة</label>
+                  <textarea id="messageContent" rows="5" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" required></textarea>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                  إرسال الرسالة
+                </button>
+              </form>
+              <div id="messageResponse" class="mt-4 hidden"></div>
+            </div>
+          </div>
 
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-              <div class="p-4 border-b border-gray-200 dark:border-gray-600">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white">رفع نتيجة اللاعب</h2>
-              </div>
-              <div class="p-4">
-                <form id="uploadResultForm" enctype="multipart/form-data">
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم هاتف اللاعب</label>
-                    <input type="tel" id="playerPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                  </div>
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم اللاعب (اختياري)</label>
-                    <input type="text" id="playerName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700">
-                  </div>
-                  <div class="mb-4">
-                    <label class="block text-gray-700 dark:text-gray-300 mb-2">ملف النتيجة</label>
-                    <div class="mt-1 flex items-center">
-                      <label for="resultFile" class="cursor-pointer bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 px-4 py-2 rounded border border-gray-300 dark:border-gray-600">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> اختر ملف
-                        <input type="file" id="resultFile" name="resultFile" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required>
-                      </label>
-                      <span id="fileName" class="mr-3 text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">لم يتم اختيار ملف</span>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn-secondary text-white py-2 px-4 rounded">
-                    <i class="fas fa-upload mr-2"></i> رفع النتيجة
-                  </button>
-                </form>
-                <div id="uploadResponse" class="mt-4 hidden"></div>
-              </div>
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden mt-6">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">رفع نتيجة اللاعب</h2>
+            </div>
+            <div class="p-4">
+              <form id="uploadResultForm" enctype="multipart/form-data">
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم هاتف اللاعب</label>
+                  <input type="tel" id="playerPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" required>
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم اللاعب (اختياري)</label>
+                  <input type="text" id="playerName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700">
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">ملف النتيجة</label>
+                  <input type="file" id="resultFile" name="resultFile" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" accept=".pdf,.jpg,.jpeg,.png" required>
+                </div>
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
+                  رفع النتيجة
+                </button>
+              </form>
+              <div id="uploadResponse" class="mt-4 hidden"></div>
             </div>
           </div>
         </div>
@@ -450,14 +281,11 @@
             <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
               <h2 class="text-xl font-bold text-gray-800 dark:text-white">الاستفسارات</h2>
               <div class="flex space-x-2">
-                <select id="inquiryFilter" class="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 bg-white dark:bg-gray-800 text-sm">
+                <select id="inquiryFilter" class="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 bg-white dark:bg-gray-800">
                   <option value="all">الكل</option>
                   <option value="new">جديدة</option>
                   <option value="responded">تم الرد</option>
                 </select>
-                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
-                  <i class="fas fa-filter mr-1"></i> تصفية
-                </button>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -483,11 +311,8 @@
         <!-- قسم النتائج المعتمدة -->
         <div id="resultsTab" class="tab-content hidden">
           <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600">
               <h2 class="text-xl font-bold text-gray-800 dark:text-white">النتائج المعتمدة</h2>
-              <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
-                <i class="fas fa-plus mr-1"></i> إضافة نتيجة
-              </button>
             </div>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
@@ -503,57 +328,6 @@
                   <!-- سيتم ملؤه بالبيانات -->
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- قسم الدرجات -->
-        <div id="gradesTab" class="tab-content hidden">
-          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
-              <h2 class="text-xl font-bold text-gray-800 dark:text-white">سجل الدرجات</h2>
-              <div class="flex space-x-2">
-                <button id="addGradeBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
-                  <i class="fas fa-plus mr-1"></i> إضافة درجة
-                </button>
-                <button id="exportGradesBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-                  <i class="fas fa-file-export mr-1"></i> تصدير البيانات
-                </button>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                <thead class="bg-gray-50 dark:bg-gray-600">
-                  <tr>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">اسم الشخص</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الدرجة</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">رقم الهاتف</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">البريد الإلكتروني</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="gradesTable" class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-                  <!-- سيتم ملؤه بالبيانات -->
-                  <tr>
-                    <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد بيانات متاحة</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="p-4 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
-              <div class="text-sm text-gray-500 dark:text-gray-400">
-                عرض <span id="gradesCount">0</span> من <span id="totalGradesCount">0</span> نتيجة
-              </div>
-              <div class="flex space-x-2">
-                <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50" disabled>
-                  السابق
-                </button>
-                <button class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
-                  التالي
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -575,7 +349,7 @@
           <input type="hidden" id="editBookingId">
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">الحالة</label>
-            <select id="editBookingStatus" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select id="editBookingStatus" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700">
               <option value="pending">قيد الانتظار</option>
               <option value="approved">مقبول</option>
               <option value="rejected">مرفوض</option>
@@ -583,7 +357,7 @@
           </div>
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">ملاحظات</label>
-            <textarea id="editBookingNotes" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            <textarea id="editBookingNotes" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700"></textarea>
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" id="cancelBookingEdit" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">إلغاء</button>
@@ -608,7 +382,7 @@
           <input type="hidden" id="respondInquiryId">
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">الرد</label>
-            <textarea id="inquiryResponse" rows="4" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            <textarea id="inquiryResponse" rows="4" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700"></textarea>
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" id="cancelInquiryResponse" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">إلغاء</button>
@@ -633,7 +407,7 @@
           <input type="hidden" id="editResultId" name="id">
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم هاتف اللاعب *</label>
-            <input type="tel" id="editPlayerPhone" name="playerPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+            <input type="tel" id="editPlayerPhone" name="playerPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" required>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم اللاعب</label>
@@ -641,13 +415,7 @@
           </div>
           <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 mb-2">ملف النتيجة الجديدة (اختياري)</label>
-            <div class="mt-1 flex items-center">
-              <label for="editResultFile" class="cursor-pointer bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 px-4 py-2 rounded border border-gray-300 dark:border-gray-600">
-                <i class="fas fa-cloud-upload-alt mr-2"></i> اختر ملف
-                <input type="file" id="editResultFile" name="editResultFile" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
-              </label>
-              <span id="editFileName" class="mr-3 text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">لم يتم اختيار ملف</span>
-            </div>
+            <input type="file" id="editResultFile" name="editResultFile" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700" accept=".pdf,.jpg,.jpeg,.png">
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" id="cancelResultEdit" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">إلغاء</button>
@@ -692,50 +460,7 @@
     </div>
   </div>
 
-  <!-- Modal لإضافة/تعديل الدرجات -->
-  <div id="gradeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white" id="gradeModalTitle">إضافة درجة جديدة</h3>
-        <button id="closeGradeModal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-4">
-        <form id="gradeForm">
-          <input type="hidden" id="gradeId">
-          <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم الشخص *</label>
-            <input type="text" id="studentName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-          </div>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-gray-700 dark:text-gray-300 mb-2">الدرجة *</label>
-              <input type="number" id="grade" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-            </div>
-            <div>
-              <label class="block text-gray-700 dark:text-gray-300 mb-2">من *</label>
-              <input type="number" id="total" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-            </div>
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم الهاتف *</label>
-            <input type="tel" id="studentPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني</label>
-            <input type="email" id="studentEmail" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-          </div>
-          <div class="flex justify-end space-x-2">
-            <button type="button" id="cancelGrade" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">إلغاء</button>
-            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">حفظ</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <script>
+ <script>
   document.addEventListener('DOMContentLoaded', () => {
     console.log('Page elements:', {
       pageTitle: document.getElementById('pageTitle'),
@@ -1448,149 +1173,6 @@
   });
   
   checkSession();
-    
-    // عرض اسم الملف عند اختياره
-    document.getElementById('resultFile').addEventListener('change', function(e) {
-      const fileName = e.target.files[0] ? e.target.files[0].name : 'لم يتم اختيار ملف';
-      document.getElementById('fileName').textContent = fileName;
-    });
-    
-    document.getElementById('editResultFile').addEventListener('change', function(e) {
-      const fileName = e.target.files[0] ? e.target.files[0].name : 'لم يتم اختيار ملف';
-      document.getElementById('editFileName').textContent = fileName;
-    });
-
-    // إدارة قسم الدرجات
-    document.addEventListener('DOMContentLoaded', function() {
-      // إضافة حدث للنقر على زر إضافة درجة
-      document.getElementById('addGradeBtn').addEventListener('click', function() {
-        document.getElementById('gradeModalTitle').textContent = 'إضافة درجة جديدة';
-        document.getElementById('gradeForm').reset();
-        document.getElementById('gradeId').value = '';
-        document.getElementById('gradeModal').classList.remove('hidden');
-      });
-
-      // إغلاق مودال الدرجات
-      document.getElementById('closeGradeModal').addEventListener('click', function() {
-        document.getElementById('gradeModal').classList.add('hidden');
-      });
-
-      document.getElementById('cancelGrade').addEventListener('click', function() {
-        document.getElementById('gradeModal').classList.add('hidden');
-      });
-
-      // حفظ بيانات الدرجة
-      document.getElementById('gradeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // هنا يمكنك إضافة كود لحفظ البيانات في قاعدة البيانات
-        const gradeData = {
-          id: document.getElementById('gradeId').value || Date.now().toString(),
-          name: document.getElementById('studentName').value,
-          grade: document.getElementById('grade').value,
-          total: document.getElementById('total').value,
-          phone: document.getElementById('studentPhone').value,
-          email: document.getElementById('studentEmail').value,
-          date: new Date().toLocaleDateString('ar-EG')
-        };
-        
-        // عرض رسالة نجاح
-        alert('تم حفظ بيانات الدرجة بنجاح');
-        document.getElementById('gradeModal').classList.add('hidden');
-        
-        // هنا يمكنك إضافة الكود لتحديث الجدول
-        updateGradesTable([gradeData]); // هذا مثال فقط، في التطبيق الفعلي سيتم جلب البيانات من قاعدة البيانات
-      });
-
-      // تصدير بيانات الدرجات
-      document.getElementById('exportGradesBtn').addEventListener('click', function() {
-        // هنا يمكنك إضافة كود لتصدير البيانات كملف Excel أو CSV
-        alert('سيتم تصدير بيانات الدرجات كملف Excel');
-      });
-    });
-
-    // دالة لتحديث جدول الدرجات
-    function updateGradesTable(grades) {
-      const gradesTable = document.getElementById('gradesTable');
-      gradesTable.innerHTML = '';
-
-      if (grades.length === 0) {
-        gradesTable.innerHTML = `
-          <tr>
-            <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد بيانات متاحة</td>
-          </tr>
-        `;
-        return;
-      }
-
-      grades.forEach((grade, index) => {
-        const percentage = (grade.grade / grade.total) * 100;
-        let gradeClass = 'grade-poor';
-        
-        if (percentage >= 85) gradeClass = 'grade-excellent';
-        else if (percentage >= 70) gradeClass = 'grade-good';
-        else if (percentage >= 50) gradeClass = 'grade-average';
-        
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600';
-        row.innerHTML = `
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${index + 1}</td>
-          <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${grade.name}</td>
-          <td class="px-4 py-4 text-sm">
-            <span class="grade-badge ${gradeClass}">${grade.grade}/${grade.total} (${percentage.toFixed(1)}%)</span>
-          </td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.phone}</td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.email || 'غير متوفر'}</td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.date}</td>
-          <td class="px-4 py-4 text-sm text-right space-x-2">
-            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 edit-grade" data-id="${grade.id}">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 delete-grade" data-id="${grade.id}">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </td>
-        `;
-        gradesTable.appendChild(row);
-      });
-
-      document.getElementById('gradesCount').textContent = grades.length;
-      document.getElementById('totalGradesCount').textContent = grades.length;
-    }
-
-    // مثال على بيانات الدرجات (في التطبيق الفعلي سيتم جلبها من قاعدة البيانات)
-    const sampleGrades = [
-      {
-        id: '1',
-        name: 'أحمد محمد',
-        grade: 85,
-        total: 100,
-        phone: '0123456789',
-        email: 'ahmed@example.com',
-        date: '2023-05-15'
-      },
-      {
-        id: '2',
-        name: 'محمود علي',
-        grade: 70,
-        total: 100,
-        phone: '0111222333',
-        email: '',
-        date: '2023-05-16'
-      },
-      {
-        id: '3',
-        name: 'سارة خالد',
-        grade: 45,
-        total: 100,
-        phone: '0100444555',
-        email: 'sara@example.com',
-        date: '2023-05-17'
-      }
-    ];
-
-    // استدعاء الدالة لعرض بيانات العينة
-    updateGradesTable(sampleGrades);
-  </script>
+</script>
 </body>
 </html>

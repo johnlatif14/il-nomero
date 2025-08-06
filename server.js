@@ -340,7 +340,7 @@ app.post('/admin/login', async (req, res) => {
 
         if (bcrypt.compareSync(password, admin.password)) {
           req.session.adminLoggedIn = true;
-          res.json({ success: true });
+          res.json({ success: true, adminAccess: true });
         } else {
           res.json({ success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
         }

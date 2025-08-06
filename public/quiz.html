@@ -367,9 +367,61 @@
         from { opacity: 0; transform: translate(-50%, -60%); }
         to { opacity: 1; transform: translate(-50%, -50%); }
     }
+
+    /* صفحة الحظر */
+    #access-denied {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #16213e;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        text-align: center;
+        padding: 20px;
+    }
+
+    #access-denied h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: #e94560;
+    }
+
+    #access-denied p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        max-width: 600px;
+    }
+
+    #access-denied a {
+        background-color: #e94560;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+    #access-denied a:hover {
+        background-color: #d13354;
+        transform: translateY(-2px);
+    }
     </style>
 </head>
 <body>
+    <!-- صفحة الحظر -->
+    <div id="access-denied" style="display: none;">
+        <h1>الدخول مرفوض!</h1>
+        <p>عذراً، لا يمكنك الوصول إلى هذه الصفحة مباشرة. يجب عليك الدخول من خلال لوحة تحكم الإدمن.</p>
+        <a href="https://wa.me/+201274445091">الذهاب إلى الرقم 0127445091 للفتح</a>
+    </div>
+    
     <!-- مؤقت الخروج -->
     <div id="leave-timer">لقد غادرت الصفحة لمدة: <span id="timer-seconds">0</span> ثانية</div>
     
@@ -569,15 +621,17 @@
         let leaveTimerInterval;
         let blockedTimerInterval;
 
-        // عناصر DOM
-        const registrationPage = document.getElementById('registration-page');
-        const quizContainer = document.getElementById('quiz-container');
-        const resultsPage = document.getElementById('results-page');
-        const blockedPage = document.getElementById('blocked-page');
-        const userInfoElement = document.getElementById('user-info');
-        const leaveTimerElement = document.getElementById('leave-timer');
-        const timerSecondsElement = document.getElementById('timer-seconds');
-        const blockedSecondsElement = document.getElementById('blocked-seconds');
+        // التحقق من الصلاحيات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // إذا لم يكن المستخدم مسجل دخول كإدمن، عرض رسالة الحظر
+            if (!sessionStorage.getItem('adminAccess')) {
+                document.getElementById('access-denied').style.display = 'flex';
+                document.getElementById('registration-page').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'none';
+                document.getElementById('results-page').style.display = 'none';
+                document.getElementById('blocked-page').style.display = 'none';
+            }
+        });
 
         // بدء الاختبار
         document.getElementById('start-quiz').addEventListener('click', function() {
@@ -587,10 +641,10 @@
             
             if (name && phone && email) {
                 userData = { name, phone, email };
-                userInfoElement.textContent = `${name} | ${phone}`;
+                document.getElementById('user-info').textContent = `${name} | ${phone}`;
                 
-                registrationPage.style.display = 'none';
-                quizContainer.style.display = 'block';
+                document.getElementById('registration-page').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'block';
                 
                 // تفعيل نظام مراقبة الخروج
                 setupExitMonitoring();
@@ -611,7 +665,7 @@
             window.onblur = function() {
                 if (!quizSubmitted) {
                     leaveTime = 0;
-                    leaveTimerElement.style.display = 'block';
+                    document.getElementById('leave-timer').style.display = 'block';
                     updateLeaveTimer();
                     
                     leaveTimerInterval = setInterval(function() {
@@ -620,7 +674,7 @@
                         
                         if (leaveTime >= 3) { // بعد 3 ثواني
                             clearInterval(leaveTimerInterval);
-                            leaveTimerElement.style.display = 'none';
+                            document.getElementById('leave-timer').style.display = 'none';
                             showBlockedPage();
                         }
                     }, 1000);
@@ -630,27 +684,27 @@
             window.onfocus = function() {
                 if (!quizSubmitted && leaveTimerInterval) {
                     clearInterval(leaveTimerInterval);
-                    leaveTimerElement.style.display = 'none';
+                    document.getElementById('leave-timer').style.display = 'none';
                 }
             };
         }
 
         function updateLeaveTimer() {
-            timerSecondsElement.textContent = leaveTime;
+            document.getElementById('timer-seconds').textContent = leaveTime;
         }
 
         function showBlockedPage() {
-            quizContainer.style.display = 'none';
-            blockedPage.style.display = 'block';
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('blocked-page').style.display = 'block';
             document.title = "ممنوع الدخول - برجاء الدفع";
             
             // بدء تايمر الصفحة المحظورة
             let blockedTime = leaveTime;
-            blockedSecondsElement.textContent = blockedTime;
+            document.getElementById('blocked-seconds').textContent = blockedTime;
             
             blockedTimerInterval = setInterval(function() {
                 blockedTime++;
-                blockedSecondsElement.textContent = blockedTime;
+                document.getElementById('blocked-seconds').textContent = blockedTime;
             }, 1000);
         }
 
@@ -695,8 +749,8 @@
             }
             
             // عرض النتائج
-            quizContainer.style.display = 'none';
-            resultsPage.style.display = 'block';
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('results-page').style.display = 'block';
             
             document.getElementById('score').textContent = score;
             
@@ -738,8 +792,8 @@
         }
 
         function backToQuiz() {
-            resultsPage.style.display = 'none';
-            quizContainer.style.display = 'block';
+            document.getElementById('results-page').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
         }
 
         function submitQuiz() {
@@ -750,7 +804,7 @@
             window.onbeforeunload = null;
             window.onblur = null;
             
-            // إرسال البيانات إلى السيرفر (يمكنك إضافة هذا الجزء لاحقاً)
+            // إرسال البيانات إلى السيرفر
             const formData = {
                 ...userData,
                 answers: getSelectedAnswers(),
@@ -758,8 +812,20 @@
                 timestamp: new Date().toISOString()
             };
             
-            console.log("بيانات الاختبار المرسلة:", formData);
-            alert("تم إرسال إجاباتك بنجاح! سيتم مراجعة النتائج.");
+            fetch('/api/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("تم إرسال إجاباتك بنجاح:", data);
+            })
+            .catch(error => {
+                console.error("حدث خطأ أثناء إرسال الإجابات:", error);
+            });
         }
 
         function getSelectedAnswers() {
@@ -790,25 +856,21 @@
             const paymentConfirmed = confirm("هل قمت بالفعل بالدفع إلى الرقم المحدد؟");
             if (paymentConfirmed) {
                 alert("شكراً لك! جاري التحقق من الدفع، يمكنك متابعة الاختبار الآن.");
-                blockedPage.style.display = 'none';
-                quizContainer.style.display = 'block';
+                document.getElementById('blocked-page').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'block';
                 document.title = "اختبار المعرفة - 5 أسئلة";
             }
         }
-            function showKokhaMessage() {
-        const message = document.getElementById('kokhaMessage');
-        message.style.display = 'block';
-        
-        // إخفاء الرسالة بعد 3 ثواني
-        setTimeout(() => {
-            message.style.display = 'none';
-        }, 3000);
-    }
-    
-    // يمكنك الاحتفاظ بوظيفة backToQuiz الأصلية إذا كنت تحتاجها
-    function backToQuiz() {
-        // الكود الأصلي هنا إن كنت تحتاجه
-    }
+
+        function showKokhaMessage() {
+            const message = document.getElementById('kokhaMessage');
+            message.style.display = 'block';
+            
+            // إخفاء الرسالة بعد 3 ثواني
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
