@@ -240,7 +240,7 @@
         }
         
         .wrong-answer {
-            border-right: 44px solid var(--danger-color);
+            border-right: 4px solid var(--danger-color); /* تم تصحيح الخطأ الإملائي هنا */
         }
         
         .correct-text {
@@ -634,6 +634,7 @@
         let leaveTime = 0;
         let leaveTimerInterval;
         let blockedTimerInterval;
+        let isBlockedByServer = false; // لتتبع حالة الحظر من السيرفر
 
         // التحقق من الصلاحيات عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
@@ -656,8 +657,13 @@
                 document.getElementById('blocked-page').style.display = 'none';
                 
                 if (data.isOpen) {
-                    document.getElementById('registration-page').style.display = 'block';
                     document.getElementById('quiz-closed-message').style.display = 'none';
+                    // إذا كان المستخدم محظورًا بالفعل من السيرفر، اعرض صفحة الحظر
+                    if (isBlockedByServer) {
+                        document.getElementById('blocked-page').style.display = 'block';
+                    } else {
+                        document.getElementById('registration-page').style.display = 'block';
+                    }
                 } else {
                     document.getElementById('quiz-closed-message').style.display = 'block';
                 }
@@ -673,12 +679,31 @@
         }
 
         // بدء الاختبار
-        document.getElementById('start-quiz').addEventListener('click', function() {
+        document.getElementById('start-quiz').addEventListener('click', async function() {
             const name = document.getElementById('name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const email = document.getElementById('email').value.trim();
             
             if (name && phone && email) {
+                // التحقق من حالة الحظر قبل بدء الاختبار
+                try {
+                    const blockCheckResponse = await fetch(`/api/check-blocked/${encodeURIComponent(phone)}`);
+                    const blockCheckData = await blockCheckResponse.json();
+
+                    if (blockCheckData.isBlocked) {
+                        isBlockedByServer = true;
+                        document.getElementById('blocked-seconds').textContent = 'مسبقًا'; // أو أي رسالة مناسبة
+                        document.getElementById('blocked-page').style.display = 'block';
+                        document.getElementById('registration-page').style.display = 'none';
+                        alert(`عذراً، رقم هاتفك (${phone}) محظور من دخول الامتحان. السبب: ${blockCheckData.reason || 'غير محدد'}`);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking blocked status:', error);
+                    alert('حدث خطأ أثناء التحقق من حالة الحظر. يرجى المحاولة مرة أخرى.');
+                    return;
+                }
+
                 userData = { name, phone, email };
                 document.getElementById('user-info').textContent = `${name} | ${phone}`;
                 
@@ -702,28 +727,32 @@
             };
 
             window.onblur = function() {
-                if (!quizSubmitted) {
+                if (!quizSubmitted && !isBlockedByServer) { // لا تفعل المراقبة إذا كان محظورًا بالفعل
                     leaveTime = 0;
                     document.getElementById('leave-timer').style.display = 'block';
                     updateLeaveTimer();
                     
-                    leaveTimerInterval = setInterval(async function() { // تم إضافة async هنا
+                    leaveTimerInterval = setInterval(async function() {
                         leaveTime++;
                         updateLeaveTimer();
                         
-                        if (leaveTime >= 3) { // بعد 3 ثواني، أغلق الامتحان
+                        if (leaveTime >= 3) { // بعد 3 ثواني، أغلق الامتحان واحظر المستخدم
                             clearInterval(leaveTimerInterval);
                             document.getElementById('leave-timer').style.display = 'none';
                             
-                            // إغلاق الامتحان على السيرفر
-                            await fetch('/admin/set-quiz-status', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ isOpen: false })
-                            });
-
-                            // عرض رسالة الإغلاق للمستخدم
-                            checkQuizAvailability(); // لتحديث الواجهة بناءً على الحالة الجديدة
+                            // حظر المستخدم على السيرفر
+                            try {
+                                await fetch('/admin/block-user', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ phone: userData.phone, reason: 'غادر صفحة الاختبار' })
+                                });
+                                isBlockedByServer = true; // تحديث حالة الحظر محليًا
+                                showBlockedPage(); // عرض صفحة الحظر
+                            } catch (error) {
+                                console.error('Error blocking user:', error);
+                                alert('حدث خطأ أثناء حظر المستخدم. يرجى الاتصال بالدعم.');
+                            }
                         }
                     }, 1000);
                 }
@@ -746,34 +775,41 @@
             document.getElementById('blocked-page').style.display = 'block';
             document.title = "ممنوع الدخول - برجاء الدفع";
             
-            // بدء تايمر الصفحة المحظورة
-            let blockedTime = leaveTime;
-            document.getElementById('blocked-seconds').textContent = blockedTime;
-            
-            blockedTimerInterval = setInterval(function() {
-                blockedTime++;
+            // بدء تايمر الصفحة المحظورة (إذا لم يكن قد بدأ بالفعل)
+            if (!blockedTimerInterval) {
+                let blockedTime = leaveTime; // استخدم الوقت الذي غادر فيه
                 document.getElementById('blocked-seconds').textContent = blockedTime;
-            }, 1000);
+                
+                blockedTimerInterval = setInterval(function() {
+                    blockedTime++;
+                    document.getElementById('blocked-seconds').textContent = blockedTime;
+                }, 1000);
+            }
         }
 
         // تصحيح الإجابات
         function checkAnswers() {
             let score = 0;
             let feedback = "";
-            
-            // حساب النقاط وتجهيز التغذية الراجعة
+            const allQuestionsData = []; // لتخزين نص السؤال وإجابة المستخدم
+
             for (let i = 1; i <= 5; i++) {
                 const questionName = "q" + i;
+                const questionElement = document.querySelector(`.question:nth-of-type(${i})`);
+                const questionText = questionElement.querySelector('h3').textContent.replace(/\s*\(.*\)\s*$/, '').trim(); // إزالة النقاط من النص
                 const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
                 const correctAnswerText = getCorrectAnswerText(questionName);
                 
+                let userAnswerText = "لم يتم الإجابة";
+
                 if (selectedOption) {
+                    userAnswerText = selectedOption.parentElement.textContent.trim().split('\n')[0].trim();
                     if (selectedOption.value === correctAnswers[questionName]) {
                         score += 5;
                         feedback += `
                             <div class="answer-item correct-answer">
                                 <p><strong>السؤال ${i}:</strong> إجابتك صحيحة</p>
-                                <p>${correctAnswerText}</p>
+                                <p>الإجابة الصحيحة: ${correctAnswerText}</p>
                                 <p class="correct-text">+5 نقاط</p>
                             </div>
                         `;
@@ -781,7 +817,7 @@
                         feedback += `
                             <div class="answer-item wrong-answer">
                                 <p><strong>السؤال ${i}:</strong> إجابتك خاطئة</p>
-                                <p>إجابتك: ${getSelectedAnswerText(questionName)}</p>
+                                <p>إجابتك: ${userAnswerText}</p>
                                 <p>الإجابة الصحيحة: ${correctAnswerText}</p>
                             </div>
                         `;
@@ -794,6 +830,7 @@
                         </div>
                     `;
                 }
+                allQuestionsData.push({ id: i, text: questionText, answer: userAnswerText });
             }
             
             // عرض النتائج
@@ -818,6 +855,31 @@
             
             document.getElementById('result-feedback').textContent = resultComment;
             document.getElementById('answers-feedback').innerHTML = feedback;
+
+            // إرسال البيانات إلى السيرفر بعد عرض النتائج
+            const formData = {
+                ...userData,
+                answers: getSelectedAnswers(), // الإجابات المختارة فقط (a, b, c, d)
+                allQuestions: allQuestionsData, // نص السؤال وإجابة المستخدم
+                score: score,
+                total: 25, // مجموع النقاط الثابت
+                timestamp: new Date().toISOString()
+            };
+            
+            fetch('/api/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("تم إرسال إجاباتك بنجاح:", data);
+            })
+            .catch(error => {
+                console.error("حدث خطأ أثناء إرسال الإجابات:", error);
+            });
         }
 
         function getCorrectAnswerText(questionName) {
@@ -840,48 +902,25 @@
         }
 
         function backToQuiz() {
+            // هذه الوظيفة لم تعد تستخدم للعودة إلى الاختبار بعد الإرسال
+            // يمكن استخدامها للعودة إلى صفحة التسجيل إذا أردت
             document.getElementById('results-page').style.display = 'none';
-            document.getElementById('quiz-container').style.display = 'block';
+            document.getElementById('registration-page').style.display = 'block';
+            document.getElementById('quiz-container').style.display = 'none';
+            quizSubmitted = false; // إعادة تعيين حالة الاختبار
+            // إعادة تعيين الإجابات المختارة
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
         }
 
         function submitQuiz() {
             quizSubmitted = true;
-            checkAnswers();
-            
             // إزالة مراقبة الخروج
             window.onbeforeunload = null;
             window.onblur = null;
-            
-            // إرسال البيانات إلى السيرفر
-            const formData = {
-                ...userData,
-                answers: getSelectedAnswers(), // الإجابات المختارة فقط (a, b, c, d)
-                allQuestions: [ // نص السؤال وإجابة المستخدم
-                    {id: 1, text: "ما هي عاصمة مصر؟", answer: getSelectedAnswerText("q1")},
-                    {id: 2, text: "كم عدد أيام السنة الكبيسة؟", answer: getSelectedAnswerText("q2")},
-                    {id: 3, text: "ما هو العنصر الكيميائي الذي رمزه O؟", answer: getSelectedAnswerText("q3")},
-                    {id: 4, text: "من هو مؤلف كتاب 'القدس ليست أورشليم'؟", answer: getSelectedAnswerText("q4")},
-                    {id: 5, text: "ما هي العملة الرسمية لليابان؟", answer: getSelectedAnswerText("q5")},
-                ],
-                score: calculateScore(),
-                total: 25, // مجموع النقاط الثابت
-                timestamp: new Date().toISOString()
-            };
-            
-            fetch('/api/submit-quiz', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("تم إرسال إجاباتك بنجاح:", data);
-            })
-            .catch(error => {
-                console.error("حدث خطأ أثناء إرسال الإجابات:", error);
-            });
+            if (leaveTimerInterval) clearInterval(leaveTimerInterval);
+            document.getElementById('leave-timer').style.display = 'none';
+
+            checkAnswers(); // هذه الدالة ستقوم بإرسال البيانات إلى السيرفر
         }
 
         function getSelectedAnswers() {
@@ -911,9 +950,13 @@
             
             const paymentConfirmed = confirm("هل قمت بالفعل بالدفع إلى الرقم المحدد؟");
             if (paymentConfirmed) {
+                // هنا يجب أن يكون هناك آلية للتحقق من الدفع على السيرفر
+                // وبعد التحقق، يتم إلغاء حظر المستخدم من قاعدة البيانات
+                // حاليًا، سنقوم بإلغاء الحظر محليًا فقط لأغراض الاختبار
                 alert("شكراً لك! جاري التحقق من الدفع، يمكنك متابعة الاختبار الآن.");
+                isBlockedByServer = false; // إلغاء الحظر محليًا
                 document.getElementById('blocked-page').style.display = 'none';
-                document.getElementById('quiz-container').style.display = 'block';
+                document.getElementById('registration-page').style.display = 'block'; // العودة لصفحة التسجيل
                 document.title = "اختبار المعرفة - 5 أسئلة";
             }
         }

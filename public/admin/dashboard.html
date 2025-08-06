@@ -220,6 +220,12 @@
               <span class="sidebar-text mr-4 text-gray-200">الامتحان</span>
             </a>
           </li>
+          <li>
+            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="cheatingControl">
+              <i class="fas fa-user-slash text-lg text-gray-300"></i>
+              <span class="sidebar-text mr-4 text-gray-200">الغش</span>
+            </a>
+          </li>
           <li class="border-t border-gray-700 pt-2 mt-2">
             <a href="/login.html" class="nav-item flex items-center p-3 rounded hover:bg-red-900/30" id="logoutBtn">
               <i class="fas fa-sign-out-alt text-lg text-red-400"></i>
@@ -586,6 +592,52 @@
             </div>
           </div>
         </div>
+
+        <!-- قسم الغش -->
+        <div id="cheatingControlTab" class="tab-content hidden">
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">التحكم في الغش (حظر/إلغاء حظر المستخدمين)</h2>
+            </div>
+            <div class="p-4">
+              <form id="blockUserForm" class="mb-6">
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">رقم الهاتف للحظر</label>
+                  <input type="tel" id="blockPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 dark:text-gray-300 mb-2">السبب (اختياري)</label>
+                  <input type="text" id="blockReason" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700">
+                </div>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">
+                  <i class="fas fa-ban mr-2"></i> حظر المستخدم
+                </button>
+              </form>
+              <div id="blockUserResponse" class="mt-4 hidden"></div>
+
+              <h3 class="text-lg font-bold text-gray-800 dark:text-white mt-8 mb-4">قائمة المستخدمين المحظورين</h3>
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <thead class="bg-gray-50 dark:bg-gray-600">
+                    <tr>
+                      <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">رقم الهاتف</th>
+                      <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">السبب</th>
+                      <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">تاريخ الحظر</th>
+                      <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="blockedUsersTable" class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
+                    <!-- سيتم ملؤه بالبيانات -->
+                    <tr>
+                      <td colspan="4" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد مستخدمين محظورين</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </main>
     </div>
   </div>
@@ -779,14 +831,14 @@
       const data = await response.json();
       
       if (!data.loggedIn) {
-        window.location.href = '/login.html'; // تم تغيير المسار هنا
+        window.location.href = '/login.html';
       } else {
         loadData();
         checkQuizStatus(); // استدعاء دالة التحقق من حالة الامتحان
       }
     } catch (error) {
       console.error('Error checking session:', error);
-      window.location.href = '/login.html'; // تم تغيير المسار هنا
+      window.location.href = '/login.html';
     }
   }
 
@@ -821,6 +873,7 @@
       renderInquiriesTable(data.inquiries);
       renderResultsTable(data.results);
       updateGradesTable(data.quizzes); // تحديث جدول الدرجات ببيانات الاختبارات
+      renderBlockedUsersTable(data.blockedUsers); // تحديث جدول المستخدمين المحظورين
       
     } catch (error) {
       console.error('Error loading data:', error);
@@ -1165,6 +1218,10 @@
       if (tabId === 'quizControl') {
         checkQuizStatus();
       }
+      // تحديث قائمة المحظورين عند التبديل إلى تبويب الغش
+      if (tabId === 'cheatingControl') {
+        loadBlockedUsers();
+      }
     });
   });
   
@@ -1479,7 +1536,7 @@
       const data = await response.json();
       
       if (data.success) {
-        window.location.href = '/login.html'; // تم تغيير المسار هنا
+        window.location.href = '/login.html';
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -1524,7 +1581,7 @@
         e.preventDefault();
         
         const gradeData = {
-          id: document.getElementById('gradeId').value, // سيتم تحديده بواسطة الخادم لـ uuid
+          // لا نرسل الـ ID هنا، الخادم سيولده
           name: document.getElementById('studentName').value,
           phone: document.getElementById('studentPhone').value,
           email: document.getElementById('studentEmail').value,
@@ -1641,7 +1698,7 @@
           const id = e.currentTarget.getAttribute('data-id');
           if (confirm('هل أنت متأكد من حذف هذه الدرجة؟')) {
             try {
-              const response = await fetch(`/admin/delete-quiz-result/${id}`, { // ستحتاج إلى إنشاء هذا الـ endpoint
+              const response = await fetch(`/admin/delete-quiz-result/${id}`, {
                 method: 'DELETE'
               });
               const data = await response.json();
@@ -1663,12 +1720,21 @@
       document.querySelectorAll('.view-answers').forEach(button => {
         button.addEventListener('click', (e) => {
           const answersJson = e.currentTarget.getAttribute('data-answers');
-          const answers = JSON.parse(answersJson);
-          let answersText = "إجابات الاختبار:\n\n";
-          answers.forEach(q => {
-            answersText += `السؤال ${q.id}: ${q.text}\nإجابة المستخدم: ${q.answer || 'لم يتم الإجابة'}\n\n`;
-          });
-          alert(answersText);
+          try {
+            const answers = JSON.parse(answersJson);
+            let answersText = "إجابات الاختبار:\n\n";
+            if (Array.isArray(answers) && answers.length > 0) {
+              answers.forEach(q => {
+                answersText += `السؤال ${q.id}: ${q.text}\nإجابة المستخدم: ${q.answer || 'لم يتم الإجابة'}\n\n`;
+              });
+            } else {
+              answersText += "لا توجد إجابات مفصلة لهذا الاختبار.";
+            }
+            alert(answersText);
+          } catch (error) {
+            console.error('Error parsing answers JSON:', error);
+            alert('حدث خطأ أثناء عرض الإجابات. البيانات غير صالحة.');
+          }
         });
       });
 
@@ -1739,6 +1805,105 @@
 
     document.getElementById('openQuizBtn').addEventListener('click', () => setQuizStatus(true));
     document.getElementById('closeQuizBtn').addEventListener('click', () => setQuizStatus(false));
+
+    // وظائف قسم الغش
+    async function loadBlockedUsers() {
+      try {
+        const response = await fetch('/admin/blocked-users');
+        const data = await response.json();
+        const blockedUsersTable = document.getElementById('blockedUsersTable');
+        blockedUsersTable.innerHTML = '';
+
+        if (data.success && data.blockedUsers.length > 0) {
+          data.blockedUsers.forEach(user => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600';
+            row.innerHTML = `
+              <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${user.phone}</td>
+              <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${user.reason || 'غير محدد'}</td>
+              <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${new Date(user.blockedAt).toLocaleDateString('ar-EG')}</td>
+              <td class="px-4 py-4 text-sm text-right">
+                <button class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 unblock-user" data-phone="${user.phone}">
+                  <i class="fas fa-unlock"></i> إلغاء الحظر
+                </button>
+              </td>
+            `;
+            blockedUsersTable.appendChild(row);
+          });
+          // إضافة مستمعي الأحداث لأزرار إلغاء الحظر
+          document.querySelectorAll('.unblock-user').forEach(button => {
+            button.addEventListener('click', handleUnblockUser);
+          });
+        } else {
+          blockedUsersTable.innerHTML = `
+            <tr>
+              <td colspan="4" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد مستخدمين محظورين</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading blocked users:', error);
+        showError('حدث خطأ أثناء تحميل قائمة المحظورين');
+      }
+    }
+
+    document.getElementById('blockUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('blockPhone').value.trim();
+      const reason = document.getElementById('blockReason').value.trim();
+      
+      try {
+        const response = await fetch('/admin/block-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, reason })
+        });
+        const data = await response.json();
+        const responseDiv = document.getElementById('blockUserResponse');
+        responseDiv.classList.remove('hidden');
+        if (data.success) {
+          responseDiv.innerHTML = `
+            <div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded">
+              ${data.message}
+            </div>
+          `;
+          showSuccess(data.message);
+          document.getElementById('blockUserForm').reset();
+          loadBlockedUsers(); // تحديث القائمة
+        } else {
+          responseDiv.innerHTML = `
+            <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+              ${data.message}
+            </div>
+          `;
+          showError(data.message);
+        }
+      } catch (error) {
+        console.error('Error blocking user:', error);
+        showError('حدث خطأ أثناء حظر المستخدم');
+      }
+    });
+
+    async function handleUnblockUser(e) {
+      const phone = e.currentTarget.getAttribute('data-phone');
+      if (confirm(`هل أنت متأكد من إلغاء حظر المستخدم ${phone}؟`)) {
+        try {
+          const response = await fetch(`/admin/unblock-user/${phone}`, {
+            method: 'DELETE'
+          });
+          const data = await response.json();
+          if (data.success) {
+            showSuccess(data.message);
+            loadBlockedUsers(); // تحديث القائمة
+          } else {
+            showError(data.message || 'حدث خطأ أثناء إلغاء حظر المستخدم');
+          }
+        } catch (error) {
+          console.error('Error unblocking user:', error);
+          showError('حدث خطأ أثناء إلغاء حظر المستخدم');
+        }
+      }
+    }
 
   </script>
 </body>

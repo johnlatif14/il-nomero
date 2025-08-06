@@ -78,6 +78,29 @@ db.serialize(() => {
     )
   `);
 
+  // جدول جديد للمستخدمين المحظورين
+  db.run(`
+    CREATE TABLE IF NOT EXISTS blocked_users (
+      phone TEXT PRIMARY KEY,
+      blockedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      reason TEXT
+    )
+  `);
+
+  // جدول لتخزين حالة الامتحان (مفتوح/مغلق) بشكل دائم
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quiz_settings (
+      setting_name TEXT PRIMARY KEY,
+      setting_value TEXT NOT NULL
+    )
+  `);
+
+  // تهيئة حالة الامتحان الافتراضية إذا لم تكن موجودة
+  db.run(`
+    INSERT OR IGNORE INTO quiz_settings (setting_name, setting_value)
+    VALUES ('quiz_open', 'false')
+  `);
+
   // إضافة المدير إذا لم يكن موجودًا
   const adminPassword = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'admin123', 8);
   db.run(`
@@ -223,13 +246,33 @@ app.post('/api/contact', async (req, res) => {
 // API لتسجيل نتائج الاختبار
 app.post('/api/submit-quiz', async (req, res) => {
   try {
-    // التحقق مما إذا كان الامتحان مفتوحًا
-    if (!req.session.quizOpen) {
+    // التحقق مما إذا كان الامتحان مفتوحًا من قاعدة البيانات
+    const quizStatusRow = await new Promise((resolve, reject) => {
+      db.get(`SELECT setting_value FROM quiz_settings WHERE setting_name = 'quiz_open'`, (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+    const isQuizOpen = quizStatusRow && quizStatusRow.setting_value === 'true';
+
+    if (!isQuizOpen) {
       return res.status(403).json({ success: false, message: 'الامتحان مغلق حاليًا.' });
     }
 
-    const { name, phone, email, answers, score, total, allQuestions } = req.body; // تم إضافة allQuestions
+    const { name, phone, email, answers, score, total, allQuestions } = req.body;
     
+    // التحقق مما إذا كان المستخدم محظورًا
+    const blockedUser = await new Promise((resolve, reject) => {
+      db.get(`SELECT * FROM blocked_users WHERE phone = ?`, [phone], (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+
+    if (blockedUser) {
+      return res.status(403).json({ success: false, message: 'رقم هاتفك محظور من دخول الامتحان.' });
+    }
+
     let finalScore = score;
     let finalTotal = total;
 
@@ -280,7 +323,7 @@ app.post('/api/submit-quiz', async (req, res) => {
 
 // Routes لوحة التحكم
 app.get('/admin/dashboard', isAdminAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); // تم تغيير المسار هنا
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 app.get('/admin/data', isAdminAuthenticated, (req, res) => {
@@ -309,11 +352,19 @@ app.get('/admin/data', isAdminAuthenticated, (req, res) => {
               return res.status(500).json({ success: false });
             }
 
-            res.json({
-              bookings: bookings,
-              inquiries: inquiries,
-              results: results,
-              quizzes: quizzes
+            db.all(`SELECT * FROM blocked_users ORDER BY blockedAt DESC`, [], (err, blockedUsers) => {
+              if (err) {
+                console.error('Error fetching blocked users:', err);
+                return res.status(500).json({ success: false });
+              }
+
+              res.json({
+                bookings: bookings,
+                inquiries: inquiries,
+                results: results,
+                quizzes: quizzes,
+                blockedUsers: blockedUsers
+              });
             });
           });
         });
@@ -352,6 +403,45 @@ app.delete('/admin/delete-quiz-result/:id', isAdminAuthenticated, (req, res) => 
   });
 });
 
+// API لإضافة مستخدم محظور
+app.post('/admin/block-user', isAdminAuthenticated, (req, res) => {
+  const { phone, reason } = req.body;
+  db.run(`INSERT OR REPLACE INTO blocked_users (phone, reason) VALUES (?, ?)`, [phone, reason], function(err) {
+    if (err) {
+      console.error('Error blocking user:', err);
+      return res.status(500).json({ success: false, message: 'حدث خطأ أثناء حظر المستخدم' });
+    }
+    res.json({ success: true, message: 'تم حظر المستخدم بنجاح' });
+  });
+});
+
+// API لإلغاء حظر مستخدم
+app.delete('/admin/unblock-user/:phone', isAdminAuthenticated, (req, res) => {
+  const phone = req.params.phone;
+  db.run(`DELETE FROM blocked_users WHERE phone = ?`, [phone], function(err) {
+    if (err) {
+      console.error('Error unblocking user:', err);
+      return res.status(500).json({ success: false, message: 'حدث خطأ أثناء إلغاء حظر المستخدم' });
+    }
+    if (this.changes > 0) {
+      res.json({ success: true, message: 'تم إلغاء حظر المستخدم بنجاح' });
+    } else {
+      res.status(404).json({ success: false, message: 'المستخدم غير موجود في قائمة الحظر' });
+    }
+  });
+});
+
+// API لجلب المستخدمين المحظورين
+app.get('/admin/blocked-users', isAdminAuthenticated, (req, res) => {
+  db.all(`SELECT * FROM blocked_users ORDER BY blockedAt DESC`, [], (err, users) => {
+    if (err) {
+      console.error('Error fetching blocked users:', err);
+      return res.status(500).json({ success: false });
+    }
+    res.json({ success: true, blockedUsers: users });
+  });
+});
+
 
 app.post('/admin/login', async (req, res) => {
   try {
@@ -367,7 +457,7 @@ app.post('/admin/login', async (req, res) => {
 
         if (bcrypt.compareSync(password, admin.password)) {
           req.session.adminLoggedIn = true;
-          req.session.quizOpen = req.session.quizOpen === undefined ? false : req.session.quizOpen; // تهيئة حالة الامتحان عند تسجيل الدخول
+          // لا نعتمد على الجلسة لحالة الامتحان هنا، بل على DB
           res.json({ success: true, adminAccess: true });
         } else {
           res.json({ success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
@@ -628,19 +718,69 @@ app.delete('/admin/delete-result/:id', isAdminAuthenticated, async (req, res) =>
 });
 
 // Endpoints للتحكم في حالة الامتحان
-app.get('/admin/quiz-status', isAdminAuthenticated, (req, res) => {
-  res.json({ isOpen: !!req.session.quizOpen });
+app.get('/admin/quiz-status', isAdminAuthenticated, async (req, res) => {
+  try {
+    const row = await new Promise((resolve, reject) => {
+      db.get(`SELECT setting_value FROM quiz_settings WHERE setting_name = 'quiz_open'`, (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+    res.json({ isOpen: row && row.setting_value === 'true' });
+  } catch (error) {
+    console.error('Error fetching quiz status from DB:', error);
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء جلب حالة الامتحان' });
+  }
 });
 
-app.post('/admin/set-quiz-status', isAdminAuthenticated, (req, res) => {
+app.post('/admin/set-quiz-status', isAdminAuthenticated, async (req, res) => {
   const { isOpen } = req.body;
-  req.session.quizOpen = !!isOpen;
-  res.json({ success: true, message: `تم ${isOpen ? 'فتح' : 'إغلاق'} الامتحان بنجاح.`, isOpen: req.session.quizOpen });
+  const value = isOpen ? 'true' : 'false';
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(`UPDATE quiz_settings SET setting_value = ? WHERE setting_name = 'quiz_open'`, [value], function(err) {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+    res.json({ success: true, message: `تم ${isOpen ? 'فتح' : 'إغلاق'} الامتحان بنجاح.`, isOpen: isOpen });
+  } catch (error) {
+    console.error('Error setting quiz status in DB:', error);
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث حالة الامتحان' });
+  }
 });
 
 // Endpoint للتحقق من حالة الامتحان للواجهة الأمامية (quiz.html)
-app.get('/api/quiz-status', (req, res) => {
-  res.json({ isOpen: !!req.session.quizOpen });
+app.get('/api/quiz-status', async (req, res) => {
+  try {
+    const row = await new Promise((resolve, reject) => {
+      db.get(`SELECT setting_value FROM quiz_settings WHERE setting_name = 'quiz_open'`, (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+    res.json({ isOpen: row && row.setting_value === 'true' });
+  } catch (error) {
+    console.error('Error fetching quiz status for frontend:', error);
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء جلب حالة الامتحان' });
+  }
+});
+
+// Endpoint للتحقق مما إذا كان المستخدم محظورًا
+app.get('/api/check-blocked/:phone', async (req, res) => {
+  const phone = req.params.phone;
+  try {
+    const row = await new Promise((resolve, reject) => {
+      db.get(`SELECT * FROM blocked_users WHERE phone = ?`, [phone], (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+    res.json({ isBlocked: !!row, reason: row ? row.reason : null });
+  } catch (error) {
+    console.error('Error checking blocked status:', error);
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء التحقق من حالة الحظر' });
+  }
 });
 
 
@@ -652,7 +792,7 @@ app.get('/login.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.get('/dashboard.html', (req, res) => { // تم تغيير المسار هنا
+app.get('/dashboard.html', (req, res) => {
   if (req.session.adminLoggedIn) {
     return res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
   }
