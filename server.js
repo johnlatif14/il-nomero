@@ -64,7 +64,7 @@ db.serialize(() => {
       name TEXT NOT NULL,
       phone TEXT NOT NULL,
       email TEXT NOT NULL,
-      answers TEXT NOT NULL,
+      answers TEXT NOT NULL, -- هذا العمود سيحتوي على JSON.stringify(allQuestions)
       score INTEGER NOT NULL,
       total INTEGER NOT NULL,
       submittedAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -228,7 +228,7 @@ app.post('/api/submit-quiz', async (req, res) => {
       return res.status(403).json({ success: false, message: 'الامتحان مغلق حاليًا.' });
     }
 
-    const { name, phone, email, answers, score, total } = req.body;
+    const { name, phone, email, answers, score, total, allQuestions } = req.body; // تم إضافة allQuestions
     
     let finalScore = score;
     let finalTotal = total;
@@ -258,7 +258,7 @@ app.post('/api/submit-quiz', async (req, res) => {
     db.run(
       `INSERT INTO quizzes (id, name, phone, email, answers, score, total) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, phone, email, JSON.stringify(answers), finalScore, finalTotal],
+      [id, name, phone, email, JSON.stringify(allQuestions), finalScore, finalTotal], // تخزين allQuestions
       function(err) {
         if (err) {
           console.error('Error saving quiz result:', err);
