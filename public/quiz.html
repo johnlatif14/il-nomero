@@ -696,7 +696,7 @@
             window.onbeforeunload = function(e) {
                 if (!quizSubmitted) {
                     e.preventDefault();
-                    return "هل أنت متأكد أنك تريد المغادرة؟ سيتم تحويلك إلى صفحة الدفع.";
+                    return "سيتم إغلاق الامتحان إذا غادرت الصفحة. هل أنت متأكد؟";
                 }
             };
 
@@ -713,7 +713,13 @@
                         if (leaveTime >= 3) { // بعد 3 ثواني
                             clearInterval(leaveTimerInterval);
                             document.getElementById('leave-timer').style.display = 'none';
-                            showBlockedPage();
+                            document.getElementById('quiz-container').style.display = 'none';
+                            document.getElementById('quiz-closed-message').style.display = 'block';
+                            document.getElementById('quiz-closed-message').innerHTML = `
+                                <h1>تم إغلاق الامتحان!</h1>
+                                <p>تم إغلاق الامتحان بسبب مغادرتك الصفحة لمدة 3 ثواني.</p>
+                                <p>يرجى التواصل مع المسؤول لإعادة فتح الامتحان.</p>
+                            `;
                         }
                     }, 1000);
                 }
@@ -846,6 +852,20 @@
             const formData = {
                 ...userData,
                 answers: getSelectedAnswers(),
+                allQuestions: [
+                    {id: 1, text: "ما هي عاصمة مصر؟", answer: getSelectedAnswerText("q1")},
+                    {id: 2, text: "كم عدد أيام السنة الكبيسة؟", answer: getSelectedAnswerText("q2")},
+                    {id: 3, text: "ما هو العنصر الكيميائي الذي رمزه O؟", answer: getSelectedAnswerText("q3")},
+                    {id: 4, text: "من هو مؤلف كتاب 'القدس ليست أورشليم'؟", answer: getSelectedAnswerText("q4")},
+                    {id: 5, text: "ما هي العملة الرسمية لليابان؟", answer: getSelectedAnswerText("q5")},
+                ],
+                allQuestions: [
+                    {id: 1, text: "ما هي عاصمة مصر؟", answer: getSelectedAnswerText("q1")},
+                    {id: 2, text: "كم عدد أيام السنة الكبيسة؟", answer: getSelectedAnswerText("q2")},
+                    {id: 3, text: "ما هو العنصر الكيميائي الذي رمزه O؟", answer: getSelectedAnswerText("q3")},
+                    {id: 4, text: "من هو مؤلف كتاب 'القدس ليست أورشليم'؟", answer: getSelectedAnswerText("q4")},
+                    {id: 5, text: "ما هي العملة الرسمية لليابان؟", answer: getSelectedAnswerText("q5")},
+                ],
                 score: calculateScore(),
                 total: 25, // مجموع النقاط الثابت
                 timestamp: new Date().toISOString()
