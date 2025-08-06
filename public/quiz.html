@@ -240,7 +240,7 @@
         }
         
         .wrong-answer {
-            border-right: 4px solid var(--danger-color);
+            border-right: 44px solid var(--danger-color);
         }
         
         .correct-text {
@@ -412,14 +412,33 @@
         background-color: #d13354;
         transform: translateY(-2px);
     }
+
+    #quiz-closed-message {
+        background-color: #ffeded;
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 1.2rem;
+        margin-top: 50px;
+        display: none; /* مخفي افتراضياً */
+    }
     </style>
 </head>
 <body>
-    <!-- صفحة الحظر -->
+    <!-- صفحة الحظر (للدخول المباشر بدون صلاحيات الإدمن) -->
     <div id="access-denied" style="display: none;">
         <h1>الدخول مرفوض!</h1>
         <p>عذراً، لا يمكنك الوصول إلى هذه الصفحة مباشرة. يجب عليك الدخول من خلال لوحة تحكم الإدمن.</p>
         <a href="https://wa.me/+201274445091">الذهاب إلى الرقم 0127445091 للفتح</a>
+    </div>
+
+    <!-- رسالة الامتحان مغلق -->
+    <div class="container" id="quiz-closed-message">
+        <h1>الامتحان مغلق حاليًا</h1>
+        <p>عذراً، الامتحان غير متاح في الوقت الحالي. يرجى المحاولة لاحقًا.</p>
+        <a href="index.html" class="btn btn-primary" style="margin-top: 20px;">العودة إلى الصفحة الرئيسية</a>
     </div>
     
     <!-- مؤقت الخروج -->
@@ -624,14 +643,42 @@
         // التحقق من الصلاحيات عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             // إذا لم يكن المستخدم مسجل دخول كإدمن، عرض رسالة الحظر
-            if (!sessionStorage.getItem('adminAccess')) {
+            if (sessionStorage.getItem('adminAccess')) { // تم تغيير الشرط هنا
+                document.getElementById('access-denied').style.display = 'none';
+                checkQuizAvailability(); // التحقق من حالة الامتحان إذا كان إدمن
+            } else {
                 document.getElementById('access-denied').style.display = 'flex';
                 document.getElementById('registration-page').style.display = 'none';
                 document.getElementById('quiz-container').style.display = 'none';
                 document.getElementById('results-page').style.display = 'none';
                 document.getElementById('blocked-page').style.display = 'none';
+                document.getElementById('quiz-closed-message').style.display = 'none'; // تأكد من إخفائها
             }
         });
+
+        // التحقق من توفر الامتحان من الخادم
+        async function checkQuizAvailability() {
+            try {
+                const response = await fetch('/api/quiz-status');
+                const data = await response.json();
+                if (data.isOpen) {
+                    document.getElementById('registration-page').style.display = 'block';
+                    document.getElementById('quiz-closed-message').style.display = 'none';
+                } else {
+                    document.getElementById('registration-page').style.display = 'none';
+                    document.getElementById('quiz-closed-message').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error checking quiz availability:', error);
+                document.getElementById('registration-page').style.display = 'none';
+                document.getElementById('quiz-closed-message').style.display = 'block'; // عرض رسالة الإغلاق في حالة الخطأ
+                document.getElementById('quiz-closed-message').innerHTML = `
+                    <h1>خطأ في الاتصال</h1>
+                    <p>حدث خطأ أثناء التحقق من توفر الامتحان. يرجى المحاولة لاحقًا.</p>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 20px;">العودة إلى الصفحة الرئيسية</a>
+                `;
+            }
+        }
 
         // بدء الاختبار
         document.getElementById('start-quiz').addEventListener('click', function() {
@@ -809,6 +856,7 @@
                 ...userData,
                 answers: getSelectedAnswers(),
                 score: calculateScore(),
+                total: 25, // مجموع النقاط الثابت
                 timestamp: new Date().toISOString()
             };
             

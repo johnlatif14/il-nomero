@@ -223,32 +223,42 @@ app.post('/api/contact', async (req, res) => {
 // API لتسجيل نتائج الاختبار
 app.post('/api/submit-quiz', async (req, res) => {
   try {
-    const { name, phone, email, answers } = req.body;
+    // التحقق مما إذا كان الامتحان مفتوحًا
+    if (!req.session.quizOpen) {
+      return res.status(403).json({ success: false, message: 'الامتحان مغلق حاليًا.' });
+    }
+
+    const { name, phone, email, answers, score, total } = req.body;
     
-    // حساب النتيجة
-    const correctAnswers = {
-      q1: "b", // القاهرة
-      q2: "b", // 366
-      q3: "b", // الأكسجين
-      q4: "c", // يوسف زيدان
-      q5: "c"  // الين
-    };
-    
-    let score = 0;
-    const total = 25; // مجموع النقاط
-    
-    for (const [question, answer] of Object.entries(answers)) {
-      if (answer === correctAnswers[question]) {
-        score += 5;
+    let finalScore = score;
+    let finalTotal = total;
+
+    // إذا لم يتم توفير score و total (أي تم الإرسال من صفحة الاختبار العادية)
+    if (score === undefined || total === undefined) {
+      const correctAnswers = {
+        q1: "b", // القاهرة
+        q2: "b", // 366
+        q3: "b", // الأكسجين
+        q4: "c", // يوسف زيدان
+        q5: "c"  // الين
+      };
+      
+      finalScore = 0;
+      finalTotal = 25; // مجموع النقاط
+      
+      for (const [question, answer] of Object.entries(answers)) {
+        if (answer === correctAnswers[question]) {
+          finalScore += 5;
+        }
       }
     }
-    
+
     const id = uuidv4();
     
     db.run(
       `INSERT INTO quizzes (id, name, phone, email, answers, score, total) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, phone, email, JSON.stringify(answers), score, total],
+      [id, name, phone, email, JSON.stringify(answers), finalScore, finalTotal],
       function(err) {
         if (err) {
           console.error('Error saving quiz result:', err);
@@ -257,8 +267,8 @@ app.post('/api/submit-quiz', async (req, res) => {
         res.json({ 
           success: true, 
           message: 'تم تسجيل النتيجة بنجاح',
-          score,
-          total
+          score: finalScore,
+          total: finalTotal
         });
       }
     );
@@ -270,7 +280,7 @@ app.post('/api/submit-quiz', async (req, res) => {
 
 // Routes لوحة التحكم
 app.get('/admin/dashboard', isAdminAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); // تم تغيير المسار هنا
 });
 
 app.get('/admin/data', isAdminAuthenticated, (req, res) => {
@@ -326,6 +336,23 @@ app.get('/admin/quiz-results', isAdminAuthenticated, (req, res) => {
   );
 });
 
+// Endpoint لحذف نتيجة اختبار
+app.delete('/admin/delete-quiz-result/:id', isAdminAuthenticated, (req, res) => {
+  const id = req.params.id;
+  db.run(`DELETE FROM quizzes WHERE id = ?`, id, function(err) {
+    if (err) {
+      console.error('Error deleting quiz result:', err);
+      return res.status(500).json({ success: false, message: 'حدث خطأ أثناء حذف نتيجة الاختبار' });
+    }
+    if (this.changes > 0) {
+      res.json({ success: true, message: 'تم حذف نتيجة الاختبار بنجاح' });
+    } else {
+      res.status(404).json({ success: false, message: 'نتيجة الاختبار غير موجودة' });
+    }
+  });
+});
+
+
 app.post('/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -340,6 +367,7 @@ app.post('/admin/login', async (req, res) => {
 
         if (bcrypt.compareSync(password, admin.password)) {
           req.session.adminLoggedIn = true;
+          req.session.quizOpen = req.session.quizOpen === undefined ? false : req.session.quizOpen; // تهيئة حالة الامتحان عند تسجيل الدخول
           res.json({ success: true, adminAccess: true });
         } else {
           res.json({ success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
@@ -512,6 +540,57 @@ app.post('/admin/upload-result', isAdminAuthenticated, upload.single('resultFile
   }
 });
 
+// Endpoint لتحديث النتيجة (مع دعم تحديث الملف اختياريًا)
+app.post('/admin/update-result', isAdminAuthenticated, upload.single('editResultFile'), async (req, res) => {
+  try {
+    const { id, playerPhone, playerName } = req.body;
+    let fileUrl = null;
+
+    // إذا تم رفع ملف جديد، استخدم مساره
+    if (req.file) {
+      fileUrl = '/uploads/' + req.file.filename;
+      // اختياري: حذف الملف القديم إذا كان موجودًا
+      db.get(`SELECT fileUrl FROM results WHERE id = ?`, [id], (err, oldResult) => {
+        if (oldResult && oldResult.fileUrl) {
+          const oldFilePath = path.join(__dirname, 'public', oldResult.fileUrl);
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlink(oldFilePath, (unlinkErr) => {
+              if (unlinkErr) console.error('Error deleting old file:', unlinkErr);
+            });
+          }
+        }
+      });
+    }
+
+    let query = `UPDATE results SET playerPhone = ?, playerName = ?`;
+    let params = [playerPhone, playerName];
+
+    if (fileUrl) {
+      query += `, fileUrl = ?`;
+      params.push(fileUrl);
+    }
+    query += ` WHERE id = ?`;
+    params.push(id);
+
+    db.run(query, params, function(err) {
+      if (err) {
+        console.error('Error updating result:', err);
+        return res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث النتيجة' });
+      }
+      if (this.changes > 0) {
+        res.json({ success: true, message: 'تم تحديث النتيجة بنجاح' });
+      } else {
+        res.status(404).json({ success: false, message: 'النتيجة غير موجودة' });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating result:', error);
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث النتيجة' });
+  }
+});
+
+
 app.delete('/admin/delete-result/:id', isAdminAuthenticated, async (req, res) => {
   try {
     const resultId = req.params.id;
@@ -548,12 +627,36 @@ app.delete('/admin/delete-result/:id', isAdminAuthenticated, async (req, res) =>
   }
 });
 
+// Endpoints للتحكم في حالة الامتحان
+app.get('/admin/quiz-status', isAdminAuthenticated, (req, res) => {
+  res.json({ isOpen: !!req.session.quizOpen });
+});
+
+app.post('/admin/set-quiz-status', isAdminAuthenticated, (req, res) => {
+  const { isOpen } = req.body;
+  req.session.quizOpen = !!isOpen;
+  res.json({ success: true, message: `تم ${isOpen ? 'فتح' : 'إغلاق'} الامتحان بنجاح.`, isOpen: req.session.quizOpen });
+});
+
+// Endpoint للتحقق من حالة الامتحان للواجهة الأمامية (quiz.html)
+app.get('/api/quiz-status', (req, res) => {
+  res.json({ isOpen: !!req.session.quizOpen });
+});
+
+
 // Routes للملفات الثابتة
 app.get('/login.html', (req, res) => {
   if (req.session.adminLoggedIn) {
     return res.redirect('/admin/dashboard');
   }
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/dashboard.html', (req, res) => { // تم تغيير المسار هنا
+  if (req.session.adminLoggedIn) {
+    return res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  }
+  res.redirect('/login.html');
 });
 
 app.get('/', (req, res) => {

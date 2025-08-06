@@ -214,6 +214,12 @@
               <span class="sidebar-text mr-4 text-gray-200">الدرجات</span>
             </a>
           </li>
+          <li>
+            <a href="#" class="nav-item flex items-center p-3 rounded" data-tab="quizControl">
+              <i class="fas fa-question text-lg text-gray-300"></i>
+              <span class="sidebar-text mr-4 text-gray-200">الامتحان</span>
+            </a>
+          </li>
           <li class="border-t border-gray-700 pt-2 mt-2">
             <a href="login.html" class="nav-item flex items-center p-3 rounded hover:bg-red-900/30" id="logoutBtn">
               <i class="fas fa-sign-out-alt text-lg text-red-400"></i>
@@ -557,6 +563,29 @@
             </div>
           </div>
         </div>
+
+        <!-- قسم الامتحان -->
+        <div id="quizControlTab" class="tab-content hidden">
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-600">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">التحكم في الامتحان</h2>
+            </div>
+            <div class="p-4">
+              <p class="text-gray-700 dark:text-gray-300 mb-4">
+                حالة الامتحان الحالية: <span id="quizStatus" class="font-bold">جاري التحميل...</span>
+              </p>
+              <div class="flex space-x-4 space-x-reverse">
+                <button id="openQuizBtn" class="btn-primary text-white py-2 px-4 rounded">
+                  <i class="fas fa-play-circle mr-2"></i> فتح الامتحان
+                </button>
+                <button id="closeQuizBtn" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">
+                  <i class="fas fa-pause-circle mr-2"></i> إغلاق الامتحان
+                </button>
+              </div>
+              <div id="quizControlResponse" class="mt-4 hidden"></div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -636,7 +665,7 @@
             <input type="tel" id="editPlayerPhone" name="playerPhone" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
           </div>
           <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم اللاعب</label>
+            <label class="block text-gray-700 dark:text-gray-300 mb-2">اسم اللاعب (اختياري)</label>
             <input type="text" id="editPlayerName" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700">
           </div>
           <div class="mb-4">
@@ -750,13 +779,14 @@
       const data = await response.json();
       
       if (!data.loggedIn) {
-        window.location.href = '/admin-login.html';
+        window.location.href = '/login.html'; // تم تغيير المسار هنا
       } else {
         loadData();
+        checkQuizStatus(); // استدعاء دالة التحقق من حالة الامتحان
       }
     } catch (error) {
       console.error('Error checking session:', error);
-      window.location.href = '/admin-login.html';
+      window.location.href = '/login.html'; // تم تغيير المسار هنا
     }
   }
 
@@ -774,7 +804,7 @@
         <tr>
           <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.name}</td>
           <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.phone}</td>
-          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.duration}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.duration || 'غير متوفر'}</td>
           <td class="px-4 py-3 whitespace-nowrap text-sm">
             <span class="px-2 py-1 rounded-full text-xs ${getStatusClass(booking.status)}">
               ${getStatusText(booking.status)}
@@ -790,6 +820,7 @@
       renderBookingsTable(data.bookings);
       renderInquiriesTable(data.inquiries);
       renderResultsTable(data.results);
+      updateGradesTable(data.quizzes); // تحديث جدول الدرجات ببيانات الاختبارات
       
     } catch (error) {
       console.error('Error loading data:', error);
@@ -810,8 +841,8 @@
         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.name}</td>
         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.email}</td>
         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.phone}</td>
-        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.duration}</td>
-        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.age}</td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.duration || 'غير متوفر'}</td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${booking.age || 'غير متوفر'}</td>
         <td class="px-4 py-3 whitespace-nowrap text-sm">
           <span class="px-2 py-1 rounded-full text-xs ${getStatusClass(booking.status)}">
             ${getStatusText(booking.status)}
@@ -840,6 +871,8 @@
     `).join('');
     
     document.getElementById('bookingsTable').innerHTML = bookingsHtml;
+    document.getElementById('bookingsCount').textContent = filteredBookings.length;
+    document.getElementById('totalBookingsCount').textContent = bookings.length;
     
     document.querySelectorAll('.edit-booking').forEach(button => {
       button.addEventListener('click', () => {
@@ -1110,7 +1143,7 @@
         content.classList.add('hidden');
       });
       
-      document.querySelectorAll('[data-tab]').forEach(t => {
+      document.querySelectorAll('.nav-item').forEach(t => { // تم تغيير المحدد هنا
         t.classList.remove('active-tab');
         t.classList.remove('bg-gray-700');
       });
@@ -1126,6 +1159,11 @@
         if (pageTitleElement) {
           pageTitleElement.textContent = tabTextElement.textContent.trim();
         }
+      }
+      
+      // تحديث حالة الامتحان عند التبديل إلى تبويب التحكم في الامتحان
+      if (tabId === 'quizControl') {
+        checkQuizStatus();
       }
     });
   });
@@ -1292,12 +1330,14 @@
         formData.append('playerName', playerName);
       }
       
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
+      // لا يمكن تحديث الملف مباشرة بـ PUT/PATCH مع FormData إذا كان الملف اختياري
+      // يجب أن يكون هناك endpoint منفصل لتحديث البيانات بدون ملف، وآخر لرفع ملف جديد
+      // أو التعامل مع الملفات بشكل أكثر تعقيدًا في هذا الـ endpoint
+      // حاليًا، هذا الكود سيعمل فقط إذا كان هناك ملف جديد يتم رفعه أو لا يوجد ملف على الإطلاق
+      // إذا كان الملف موجودًا بالفعل ولم يتم اختيار ملف جديد، فلن يتم تحديثه
       
-      const response = await fetch('/admin/update-result', {
-        method: 'POST',
+      const response = await fetch('/admin/update-result', { // ستحتاج إلى إنشاء هذا الـ endpoint في server.js
+        method: 'POST', // أو PUT إذا كنت تفضل RESTful
         body: formData
       });
       
@@ -1439,7 +1479,7 @@
       const data = await response.json();
       
       if (data.success) {
-        window.location.href = '/admin-login.html';
+        window.location.href = '/login.html'; // تم تغيير المسار هنا
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -1480,26 +1520,41 @@
       });
 
       // حفظ بيانات الدرجة
-      document.getElementById('gradeForm').addEventListener('submit', function(e) {
+      document.getElementById('gradeForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // هنا يمكنك إضافة كود لحفظ البيانات في قاعدة البيانات
         const gradeData = {
-          id: document.getElementById('gradeId').value || Date.now().toString(),
+          id: document.getElementById('gradeId').value, // سيتم تحديده بواسطة الخادم لـ uuid
           name: document.getElementById('studentName').value,
-          grade: document.getElementById('grade').value,
-          total: document.getElementById('total').value,
           phone: document.getElementById('studentPhone').value,
           email: document.getElementById('studentEmail').value,
-          date: new Date().toLocaleDateString('ar-EG')
+          score: parseInt(document.getElementById('grade').value),
+          total: parseInt(document.getElementById('total').value),
+          answers: JSON.stringify({}) // لا توجد إجابات مفصلة هنا، فقط النتيجة
         };
-        
-        // عرض رسالة نجاح
-        alert('تم حفظ بيانات الدرجة بنجاح');
-        document.getElementById('gradeModal').classList.add('hidden');
-        
-        // هنا يمكنك إضافة الكود لتحديث الجدول
-        updateGradesTable([gradeData]); // هذا مثال فقط، في التطبيق الفعلي سيتم جلب البيانات من قاعدة البيانات
+
+        try {
+          const response = await fetch('/api/submit-quiz', { // استخدام نفس endpoint إرسال الاختبار
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(gradeData)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showSuccess('تم حفظ بيانات الدرجة بنجاح');
+            document.getElementById('gradeModal').classList.add('hidden');
+            loadData(); // إعادة تحميل البيانات لتحديث جدول الدرجات
+          } else {
+            showError(data.message || 'حدث خطأ أثناء حفظ الدرجة');
+          }
+        } catch (error) {
+          console.error('Error saving grade:', error);
+          showError('حدث خطأ أثناء حفظ الدرجة');
+        }
       });
 
       // تصدير بيانات الدرجات
@@ -1510,21 +1565,23 @@
     });
 
     // دالة لتحديث جدول الدرجات
-    function updateGradesTable(grades) {
+    function updateGradesTable(quizzes) {
       const gradesTable = document.getElementById('gradesTable');
       gradesTable.innerHTML = '';
 
-      if (grades.length === 0) {
+      if (quizzes.length === 0) {
         gradesTable.innerHTML = `
           <tr>
             <td colspan="7" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">لا توجد بيانات متاحة</td>
           </tr>
         `;
+        document.getElementById('gradesCount').textContent = 0;
+        document.getElementById('totalGradesCount').textContent = 0;
         return;
       }
 
-      grades.forEach((grade, index) => {
-        const percentage = (grade.grade / grade.total) * 100;
+      quizzes.forEach((quiz, index) => {
+        const percentage = (quiz.score / quiz.total) * 100;
         let gradeClass = 'grade-poor';
         
         if (percentage >= 85) gradeClass = 'grade-excellent';
@@ -1535,18 +1592,18 @@
         row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600';
         row.innerHTML = `
           <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${index + 1}</td>
-          <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${grade.name}</td>
+          <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${quiz.name}</td>
           <td class="px-4 py-4 text-sm">
-            <span class="grade-badge ${gradeClass}">${grade.grade}/${grade.total} (${percentage.toFixed(1)}%)</span>
+            <span class="grade-badge ${gradeClass}">${quiz.score}/${quiz.total} (${percentage.toFixed(1)}%)</span>
           </td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.phone}</td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.email || 'غير متوفر'}</td>
-          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${grade.date}</td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${quiz.phone}</td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${quiz.email || 'غير متوفر'}</td>
+          <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">${new Date(quiz.submittedAt).toLocaleDateString('ar-EG')}</td>
           <td class="px-4 py-4 text-sm text-right space-x-2">
-            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 edit-grade" data-id="${grade.id}">
+            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 edit-grade" data-id="${quiz.id}">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 delete-grade" data-id="${grade.id}">
+            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 delete-grade" data-id="${quiz.id}">
               <i class="fas fa-trash-alt"></i>
             </button>
           </td>
@@ -1554,43 +1611,117 @@
         gradesTable.appendChild(row);
       });
 
-      document.getElementById('gradesCount').textContent = grades.length;
-      document.getElementById('totalGradesCount').textContent = grades.length;
+      document.getElementById('gradesCount').textContent = quizzes.length;
+      document.getElementById('totalGradesCount').textContent = quizzes.length;
+      
+      // إضافة مستمعي الأحداث لأزرار التعديل والحذف
+      document.querySelectorAll('.edit-grade').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const quizToEdit = quizzes.find(q => q.id === id);
+          if (quizToEdit) {
+            document.getElementById('gradeModalTitle').textContent = 'تعديل درجة';
+            document.getElementById('gradeId').value = quizToEdit.id;
+            document.getElementById('studentName').value = quizToEdit.name;
+            document.getElementById('grade').value = quizToEdit.score;
+            document.getElementById('total').value = quizToEdit.total;
+            document.getElementById('studentPhone').value = quizToEdit.phone;
+            document.getElementById('studentEmail').value = quizToEdit.email;
+            document.getElementById('gradeModal').classList.remove('hidden');
+          }
+        });
+      });
+
+      document.querySelectorAll('.delete-grade').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          if (confirm('هل أنت متأكد من حذف هذه الدرجة؟')) {
+            try {
+              const response = await fetch(`/admin/delete-quiz-result/${id}`, { // ستحتاج إلى إنشاء هذا الـ endpoint
+                method: 'DELETE'
+              });
+              const data = await response.json();
+              if (data.success) {
+                showSuccess('تم حذف الدرجة بنجاح');
+                loadData(); // إعادة تحميل البيانات لتحديث الجدول
+              } else {
+                showError(data.message || 'حدث خطأ أثناء حذف الدرجة');
+              }
+            } catch (error) {
+              console.error('Error deleting quiz result:', error);
+              showError('حدث خطأ أثناء حذف الدرجة');
+            }
+          }
+        });
+      });
     }
 
-    // مثال على بيانات الدرجات (في التطبيق الفعلي سيتم جلبها من قاعدة البيانات)
-    const sampleGrades = [
-      {
-        id: '1',
-        name: 'أحمد محمد',
-        grade: 85,
-        total: 100,
-        phone: '0123456789',
-        email: 'ahmed@example.com',
-        date: '2023-05-15'
-      },
-      {
-        id: '2',
-        name: 'محمود علي',
-        grade: 70,
-        total: 100,
-        phone: '0111222333',
-        email: '',
-        date: '2023-05-16'
-      },
-      {
-        id: '3',
-        name: 'سارة خالد',
-        grade: 45,
-        total: 100,
-        phone: '0100444555',
-        email: 'sara@example.com',
-        date: '2023-05-17'
+    // وظائف التحكم في الامتحان
+    async function checkQuizStatus() {
+      try {
+        const response = await fetch('/admin/quiz-status');
+        const data = await response.json();
+        const quizStatusElement = document.getElementById('quizStatus');
+        if (data.isOpen) {
+          quizStatusElement.textContent = 'مفتوح';
+          quizStatusElement.classList.remove('text-red-500');
+          quizStatusElement.classList.add('text-green-500');
+        } else {
+          quizStatusElement.textContent = 'مغلق';
+          quizStatusElement.classList.remove('text-green-500');
+          quizStatusElement.classList.add('text-red-500');
+        }
+      } catch (error) {
+        console.error('Error fetching quiz status:', error);
+        document.getElementById('quizStatus').textContent = 'خطأ في التحميل';
+        document.getElementById('quizStatus').classList.add('text-red-500');
       }
-    ];
+    }
 
-    // استدعاء الدالة لعرض بيانات العينة
-    updateGradesTable(sampleGrades);
+    async function setQuizStatus(isOpen) {
+      try {
+        const response = await fetch('/admin/set-quiz-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isOpen })
+        });
+        const data = await response.json();
+        const responseDiv = document.getElementById('quizControlResponse');
+        responseDiv.classList.remove('hidden');
+        if (data.success) {
+          responseDiv.innerHTML = `
+            <div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded">
+              ${data.message}
+            </div>
+          `;
+          showSuccess(data.message);
+          checkQuizStatus(); // تحديث الحالة المعروضة
+        } else {
+          responseDiv.innerHTML = `
+            <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+              ${data.message}
+            </div>
+          `;
+          showError(data.message);
+        }
+      } catch (error) {
+        console.error('Error setting quiz status:', error);
+        const responseDiv = document.getElementById('quizControlResponse');
+        responseDiv.classList.remove('hidden');
+        responseDiv.innerHTML = `
+          <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+            حدث خطأ أثناء تحديث حالة الامتحان.
+          </div>
+        `;
+        showError('حدث خطأ أثناء تحديث حالة الامتحان.');
+      }
+    }
+
+    document.getElementById('openQuizBtn').addEventListener('click', () => setQuizStatus(true));
+    document.getElementById('closeQuizBtn').addEventListener('click', () => setQuizStatus(false));
+
   </script>
 </body>
 </html>
