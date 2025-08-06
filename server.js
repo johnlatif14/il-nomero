@@ -785,7 +785,7 @@ app.get('/api/check-blocked/:phone', async (req, res) => {
 
 
 // Routes للملفات الثابتة
-app.get('/login.html', (req, res) => {
+app.get('admin/login.html', (req, res) => {
   if (req.session.adminLoggedIn) {
     return res.redirect('/admin/dashboard');
   }
